@@ -1,10 +1,16 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronLeft, Star, Globe, Instagram, MessageCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Star, Globe, Instagram, MessageCircle, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
+import { useProjects } from '../contexts/ProjectContext';
+import { IntelligenceService } from '../services/intelligence';
 
 const BrandIntake: React.FC = () => {
   const navigate = useNavigate();
+  const { addBrand } = useProjects();
+  const intelService = IntelligenceService.getInstance();
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -15,9 +21,56 @@ const BrandIntake: React.FC = () => {
 
   const types = ['Womenswear', 'Menswear', 'Swimwear', 'Luxury', 'Streetwear'];
 
+  const handleRunAnalysis = async () => {
+    if (!formData.name || !formData.description) return;
+    
+    setIsSubmitting(true);
+    const newId = formData.name.toLowerCase().replace(/\s+/g, '-');
+    
+    try {
+      // Systematic Step: Synthesize Cold-Start DNA Pillars via Gemini
+      const strategicRec = await intelService.getStrategicRecommendation(
+        formData.name, 
+        ['Authenticity'], 
+        'Cold Start Intake', 
+        'Extract 3 Core DNA Pillars'
+      );
+      
+      const dna = strategicRec.split(',').slice(0, 3).map(s => s.trim()) || ['Heritage', 'Elegance', 'Modernity'];
+
+      addBrand({
+        id: newId,
+        name: formData.name,
+        description: formData.description,
+        type: formData.type,
+        website: formData.website || `${newId}.com`,
+        scores: { overall: 85, website: 70, social: 60 },
+        dna: dna,
+        persona: 'Global Epicurean',
+        personas: [
+          {
+            name: 'The Silent Curator',
+            illustration: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
+            demographics: '30-45, Urban, Global',
+            psychographics: 'Values structural integrity and radical transparency.',
+            lifestyle: ['Galleries', 'Boutique Travel'],
+            channels: ['Instagram', 'Vogue']
+          }
+        ],
+        marketPosition: { x: 50, y: 50 }
+      });
+
+      navigate(`/brand/${newId}/analysis`);
+    } catch (e) {
+      console.error(e);
+      navigate(`/brand/default/analysis`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-ivory flex flex-col md:flex-row">
-      {/* Left Panel: Nav */}
       <div className="w-full md:w-20 border-r border-[#E5E1D8] bg-white flex flex-col items-center py-8 gap-8">
         <div className="font-serif text-2xl font-bold">F.</div>
         <div className="flex flex-col gap-6">
@@ -26,7 +79,6 @@ const BrandIntake: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Panel: Wizard */}
       <div className="flex-1 flex items-center justify-center p-8 md:p-16">
         <div className="w-full max-w-2xl">
           <header className="mb-12">
@@ -96,18 +148,18 @@ const BrandIntake: React.FC = () => {
             <div className="flex items-center justify-between pt-4">
               <button onClick={() => navigate('/')} className="text-sm font-semibold text-warmgray hover:text-charcoal transition-colors">Save for later</button>
               <button 
-                onClick={() => navigate('/brand/default/analysis')}
-                className="bg-charcoal text-white px-10 py-4 rounded-full text-sm font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-3 group"
+                onClick={handleRunAnalysis}
+                disabled={isSubmitting || !formData.name || !formData.description}
+                className="bg-charcoal text-white px-10 py-4 rounded-full text-sm font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-3 group disabled:opacity-50"
               >
+                {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
                 Run AI Analysis
-                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Right Panel: AI Context */}
       <div className="hidden lg:flex w-80 border-l border-[#E5E1D8] bg-white flex-col p-8">
         <h3 className="text-[11px] uppercase tracking-widest font-bold mb-8">What AI will analyze</h3>
         <div className="space-y-8">
@@ -127,12 +179,6 @@ const BrandIntake: React.FC = () => {
                </div>
             </div>
           ))}
-        </div>
-        <div className="mt-auto p-6 bg-ivory rounded-3xl border border-[#E5E1D8] text-center">
-           <div className="h-12 w-12 bg-white rounded-full flex items-center justify-center mx-auto mb-4 border border-[#E5E1D8]">
-              <span className="text-xs font-bold">0%</span>
-           </div>
-           <p className="text-[10px] uppercase font-bold text-warmgray">Analysis Progress</p>
         </div>
       </div>
     </div>

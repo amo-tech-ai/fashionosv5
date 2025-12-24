@@ -77,7 +77,7 @@ const SettingsPage: React.FC = () => {
                   <div className="space-y-2">
                      <label className="text-[10px] uppercase font-bold tracking-widest text-warmgray ml-2">Intelligence Core</label>
                      <div className="flex items-center justify-between p-4 bg-white border border-[#E5E1D8] rounded-2xl">
-                        <span className="text-sm font-medium">Gemini 3 Flash</span>
+                        <span className="text-sm font-medium">Gemini 3 Pro / Flash</span>
                         <Cpu size={16} className="text-sage" />
                      </div>
                   </div>
@@ -88,7 +88,7 @@ const SettingsPage: React.FC = () => {
          <section className="bg-charcoal text-white rounded-[48px] p-10 flex flex-col md:flex-row items-center gap-10">
             <div className="flex-1 space-y-4">
                <h4 className="font-serif text-3xl">Neural Link Status</h4>
-               <p className="text-white/50 leading-relaxed text-sm">System Unit 01 is currently synchronized with the global production grid. Efficiency is optimized for the SS25 cycle.</p>
+               <p className="text-white/50 leading-relaxed text-sm">System Unit 01 is currently synchronized with the global production grid. Running on Gemini 3.0 Series.</p>
             </div>
             <button className="px-10 py-5 bg-white text-charcoal rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-3">
                Run Diagnostics <ArrowRight size={16} />

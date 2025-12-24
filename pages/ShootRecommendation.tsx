@@ -1,10 +1,17 @@
 
-import React from 'react';
-import { Sparkles, ArrowRight, Zap, Target, Camera, Check } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sparkles, ArrowRight, Zap, Target, Camera, Check, ClipboardList, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useIntelligence } from '../contexts/IntelligenceContext';
+import { useProjects } from '../contexts/ProjectContext';
+import ProductionBriefModal from '../components/shoot-recommendation/ProductionBriefModal';
 
 const ShootRecommendation: React.FC = () => {
-  const navigate = useNavigate();
+  const { openPanel } = useIntelligence();
+  const { brands } = useProjects();
+  const brand = brands[0];
+  const [selectedRec, setSelectedRec] = useState<any | null>(null);
+  const [isSending, setIsSending] = useState(false);
 
   const recommendations = [
     {
@@ -12,26 +19,46 @@ const ShootRecommendation: React.FC = () => {
       desc: 'Merging SS25 lines with Neoclassical Milanese facades.',
       impact: 'High Performance',
       image: 'https://images.unsplash.com/photo-1550630992-c037bb2f43ca?auto=format&fit=crop&w=800&q=80',
-      channels: ['Instagram', 'Print']
+      channels: ['Instagram', 'Print'],
+      studio: 'Studio A (Milan)'
     },
     {
       title: 'Desert Noir',
       desc: 'Sustainable silk against brutalist desert landscape.',
       impact: 'Viral Potential',
       image: 'https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&q=80',
-      channels: ['TikTok', 'Web']
+      channels: ['TikTok', 'Web'],
+      studio: 'Al-Hajar Wilds'
     },
     {
       title: 'Studio Minimalism',
       desc: 'Ethereal lighting highlighting artisanal precision.',
       impact: 'E-com Conversion',
       image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=800&q=80',
-      channels: ['Amazon', 'Web']
+      channels: ['Amazon', 'Web'],
+      studio: 'Studio B (Paris)'
     }
   ];
 
+  const handleBook = (rec: any) => {
+    openPanel('booking', {
+      title: rec.title,
+      image: rec.image,
+      impact: rec.impact,
+      suggestedStudio: rec.studio
+    });
+  };
+
+  const handleSendBrief = async () => {
+    setIsSending(true);
+    // Simulate neural dispatch
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setIsSending(false);
+    setSelectedRec(null);
+  };
+
   return (
-    <div className="p-8 md:p-12 max-w-7xl mx-auto space-y-16 pb-24">
+    <div className="p-8 md:p-12 max-w-7xl mx-auto space-y-16 pb-24 relative">
       <header className="flex flex-col md:flex-row justify-between items-end gap-10">
          <div className="animate-in fade-in slide-in-from-left duration-1000">
             <div className="flex items-center gap-3 mb-4">
@@ -41,8 +68,11 @@ const ShootRecommendation: React.FC = () => {
             <h2 className="font-serif text-6xl tracking-tighter mb-4">AI Recommended Shoots</h2>
             <p className="text-warmgray text-lg max-w-xl">Based on your brand scores and SS25 trajectory, we recommend these high-impact productions.</p>
          </div>
-         <button className="bg-charcoal text-white px-10 py-5 rounded-full text-sm font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-2xl flex items-center gap-3">
-            Book Production <ArrowRight size={20} />
+         <button 
+           onClick={() => setSelectedRec(recommendations[0])}
+           className="bg-charcoal text-white px-10 py-5 rounded-full text-sm font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-2xl flex items-center gap-3 group"
+         >
+            Brief Top Production <ClipboardList size={20} className="group-hover:rotate-12 transition-transform" />
          </button>
       </header>
 
@@ -59,7 +89,7 @@ const ShootRecommendation: React.FC = () => {
                  </div>
                  <div className="absolute bottom-8 left-8 right-8">
                     <h3 className="font-serif text-3xl text-white mb-2">{rec.title}</h3>
-                    <p className="text-white/70 text-sm leading-relaxed mb-6">{rec.desc}</p>
+                    <p className="text-white/70 text-sm leading-relaxed mb-6 line-clamp-2 italic">"{rec.desc}"</p>
                     <div className="flex gap-2">
                        {rec.channels.map(c => (
                          <span key={c} className="px-3 py-1 bg-white/10 backdrop-blur rounded-full text-[8px] font-bold uppercase text-white tracking-widest">{c}</span>
@@ -68,10 +98,25 @@ const ShootRecommendation: React.FC = () => {
                  </div>
               </div>
               <div className="p-8 flex items-center justify-between border-t border-[#E5E1D8]">
-                 <span className="text-[10px] uppercase font-bold text-warmgray tracking-widest">Confidence: 94%</span>
-                 <button className="p-3 bg-ivory rounded-full hover:bg-sage hover:text-white transition-all">
-                    <Camera size={20} />
-                 </button>
+                 <div className="space-y-1">
+                    <span className="text-[10px] uppercase font-bold text-warmgray tracking-widest block">Neural Fit</span>
+                    <span className="text-xs font-bold text-sage">94% Confidence</span>
+                 </div>
+                 <div className="flex gap-2">
+                    <button 
+                      onClick={() => setSelectedRec(rec)}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-charcoal text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all shadow-sm"
+                    >
+                       <ClipboardList size={14} /> Brief Team
+                    </button>
+                    <button 
+                      onClick={() => handleBook(rec)}
+                      className="p-2.5 bg-ivory rounded-2xl hover:bg-sage hover:text-white transition-all text-warmgray"
+                      title="Direct Booking"
+                    >
+                       <Camera size={18} />
+                    </button>
+                 </div>
               </div>
            </div>
          ))}
@@ -79,7 +124,7 @@ const ShootRecommendation: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-16 pt-16 border-t border-[#E5E1D8]">
          <div className="space-y-6">
-            <div className="h-12 w-12 bg-sage rounded-2xl flex items-center justify-center text-white">
+            <div className="h-12 w-12 bg-sage rounded-2xl flex items-center justify-center text-white shadow-lg">
                <Zap size={24} />
             </div>
             <h4 className="font-serif text-3xl">AI Strategic Logic</h4>
@@ -99,19 +144,42 @@ const ShootRecommendation: React.FC = () => {
                           <span>{stat.l}</span>
                           <span>{stat.s}%</span>
                        </div>
-                       <div className="h-1 bg-ivory rounded-full">
+                       <div className="h-1 bg-ivory rounded-full overflow-hidden">
                           <div className="h-full bg-sage rounded-full" style={{ width: `${stat.s}%` }} />
                        </div>
                     </div>
                   ))}
                </div>
             </div>
-            <div className="w-full md:w-48 aspect-square bg-charcoal rounded-3xl p-8 flex flex-col justify-between text-white">
+            <div className="w-full md:w-48 aspect-square bg-charcoal rounded-3xl p-8 flex flex-col justify-between text-white shadow-xl">
                <Target size={32} className="text-sage" />
                <p className="text-xs font-bold uppercase tracking-widest leading-relaxed">Optimal ROI for Q4 Brand Equity</p>
             </div>
          </div>
       </div>
+
+      {/* Production Brief Modal */}
+      {selectedRec && (
+        <ProductionBriefModal 
+          brand={brand}
+          recommendation={selectedRec}
+          onClose={() => setSelectedRec(null)}
+          onSend={handleSendBrief}
+        />
+      )}
+
+      {/* Sending Overlay */}
+      {isSending && (
+        <div className="fixed inset-0 z-[110] glass flex items-center justify-center animate-in fade-in duration-300">
+           <div className="bg-charcoal text-white rounded-[40px] p-12 shadow-2xl flex flex-col items-center gap-6">
+              <Loader2 size={48} className="animate-spin text-sage" />
+              <div className="text-center">
+                 <h3 className="font-serif text-3xl">Dispatching Brief...</h3>
+                 <p className="text-white/40 text-xs mt-2 uppercase tracking-widest">Neural Link Handshake in Progress</p>
+              </div>
+           </div>
+        </div>
+      )}
     </div>
   );
 };

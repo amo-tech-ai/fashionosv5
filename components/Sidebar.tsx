@@ -1,10 +1,11 @@
 
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { 
   Home, Star, BarChart2, Calendar, Target, User, 
-  Layers, MapPin, Grid, Bookmark, MessageSquare, Settings, Menu, Sparkles
+  Layers, MapPin, Grid, Bookmark, MessageSquare, Settings, Menu, Sparkles, Activity, Bell, Camera
 } from 'lucide-react';
+import { useProjects } from '../contexts/ProjectContext';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -12,19 +13,43 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
-  const collaborators = [
-    { name: 'Elena', img: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=40&q=80', status: 'active' },
-    { name: 'Marcus', img: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=40&q=80', status: 'idle' },
-    { name: 'Sasha', img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=40&q=80', status: 'active' },
-  ];
+  const { brands } = useProjects();
+  const location = useLocation();
+  const activeBrandId = brands[0]?.id || 'default';
+  const [notifications, setNotifications] = useState<string[]>([]);
+
+  useEffect(() => {
+    const alerts: Record<string, string> = {
+      profile: "Elena updated SS25 Moodboard",
+      calendar: "Growth: Optimized 3 post times",
+      recommendation: "New high-impact shoot concept ready",
+      media: "4 assets awaiting DNA audit",
+      campaigns: "Performance lift detected: +14%",
+      events: "NYFW Logistics Handshake Secured"
+    };
+
+    const path = location.pathname;
+    let relevantAlert = null;
+    if (path.includes('profile')) relevantAlert = alerts.profile;
+    else if (path.includes('calendar')) relevantAlert = alerts.calendar;
+    else if (path.includes('recommendation')) relevantAlert = alerts.recommendation;
+    else if (path.includes('media')) relevantAlert = alerts.media;
+    else if (path.includes('campaigns')) relevantAlert = alerts.campaigns;
+    else if (path.includes('events')) relevantAlert = alerts.events;
+
+    if (relevantAlert && !notifications.includes(relevantAlert)) {
+      setNotifications(prev => [relevantAlert, ...prev].slice(0, 3));
+    }
+  }, [location.pathname]);
 
   const navItems = [
     { name: 'Dashboard', icon: Home, path: '/' },
-    { name: 'Intake', icon: Star, path: '/brand/intake' },
-    { name: 'Analysis', icon: BarChart2, path: '/brand/default/analysis' },
-    { name: 'Profile', icon: User, path: '/brand/default/profile' },
-    { name: 'Calendar', icon: Calendar, path: '/brand/default/calendar' },
-    { name: 'Recommendations', icon: Sparkles, path: '/brand/default/shoots/recommendation' },
+    { name: 'Analysis', icon: BarChart2, path: `/brand/${activeBrandId}/analysis` },
+    { name: 'Profile', icon: User, path: `/brand/${activeBrandId}/profile` },
+    { name: 'Calendar', icon: Calendar, path: `/brand/${activeBrandId}/calendar` },
+    { name: 'Shoots', icon: Camera, path: '/shoots' },
+    { name: 'Events', icon: MapPin, path: '/events' },
+    { name: 'Campaigns', icon: Target, path: '/campaigns' },
     { name: 'Media', icon: Grid, path: '/media' },
     { name: 'Concierge', icon: MessageSquare, path: '/chat' },
     { name: 'Settings', icon: Settings, path: '/settings' },
@@ -48,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
             key={item.name}
             to={item.path}
             className={({ isActive }) => `
-              flex items-center gap-4 px-4 py-3.5 rounded-[20px] text-sm font-medium transition-all duration-300
+              flex items-center gap-4 px-4 py-3.5 rounded-[20px] text-sm font-medium transition-all duration-300 group
               ${isActive 
                 ? 'bg-charcoal text-white shadow-xl shadow-charcoal/10 translate-x-1' 
                 : 'text-warmgray hover:bg-ivory hover:text-charcoal hover:translate-x-1'}
@@ -64,45 +89,40 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
         ))}
       </nav>
 
-      <div className="p-6 border-t border-[#E5E1D8] bg-ivory/30">
-        {!isCollapsed ? (
-          <div className="space-y-4">
-             <div className="p-5 bg-white rounded-3xl border border-[#E5E1D8] shadow-sm relative overflow-hidden group">
-                <p className="text-[10px] uppercase tracking-widest text-warmgray font-bold mb-2">Neural Link</p>
-                <p className="text-xs font-bold text-charcoal flex items-center gap-2">
-                  <span className="h-2 w-2 bg-sage rounded-full animate-pulse" />
-                  Live Production
+      <div className="p-6 border-t border-[#E5E1D8] bg-ivory/30 space-y-6">
+        {!isCollapsed && notifications.length > 0 && (
+          <div className="space-y-3 animate-in slide-in-from-bottom-2">
+             <div className="flex items-center justify-between">
+                <p className="text-[9px] uppercase font-bold text-sage tracking-[0.2em] flex items-center gap-1.5">
+                  <Bell size={10} className="animate-bounce" /> Neural Pulse
                 </p>
-                <div className="absolute -right-4 -bottom-4 h-12 w-12 bg-sage/10 rounded-full blur-xl group-hover:scale-150 transition-transform" />
+                <button onClick={() => setNotifications([])} className="text-[8px] text-warmgray hover:text-charcoal uppercase font-bold">Clear</button>
              </div>
-             
-             <div className="px-2">
-                <p className="text-[9px] uppercase font-bold text-warmgray tracking-widest mb-3">Presence</p>
-                <div className="flex -space-x-2">
-                   {collaborators.map((c, i) => (
-                     <div key={i} className="relative group cursor-pointer">
-                        <img 
-                          src={c.img} 
-                          alt={c.name} 
-                          className={`h-8 w-8 rounded-full border-2 border-white object-cover ${c.status === 'idle' ? 'grayscale opacity-70' : ''}`}
-                        />
-                        <div className={`absolute bottom-0 right-0 h-2 w-2 rounded-full border border-white ${c.status === 'active' ? 'bg-sage' : 'bg-warmgray'}`} />
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-charcoal text-white text-[8px] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                           {c.name} • {c.status}
-                        </div>
-                     </div>
-                   ))}
-                   <div className="h-8 w-8 rounded-full border-2 border-dashed border-[#E5E1D8] bg-white flex items-center justify-center text-warmgray text-[10px] cursor-pointer hover:border-charcoal hover:text-charcoal transition-all">
-                      +
-                   </div>
-                </div>
-             </div>
+             {notifications.map((note, i) => (
+               <div key={i} className="px-3 py-2 bg-white/60 border border-sage/10 rounded-xl text-[10px] text-charcoal font-medium truncate italic shadow-sm">
+                  {note}
+               </div>
+             ))}
+          </div>
+        )}
+
+        {!isCollapsed ? (
+          <div className="p-5 bg-white rounded-3xl border border-[#E5E1D8] shadow-sm relative overflow-hidden group">
+            <p className="text-[10px] uppercase tracking-widest text-warmgray font-bold mb-2">Neural Status</p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold text-charcoal flex items-center gap-2">
+                <span className="h-2 w-2 bg-sage rounded-full animate-pulse" />
+                Synchronized
+              </p>
+              <Activity size={12} className="text-sage" />
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-4">
-            <div className="h-3 w-3 bg-sage rounded-full shadow-[0_0_15px_rgba(143,174,158,0.5)] animate-pulse" />
-            <div className="h-8 w-8 rounded-full bg-ivory border border-[#E5E1D8] flex items-center justify-center text-warmgray text-[10px]">
-              3
+            <div className="h-3 w-3 bg-sage rounded-full animate-pulse" />
+            <div className="relative">
+               <Bell size={20} className="text-warmgray" />
+               {notifications.length > 0 && <div className="absolute -top-1 -right-1 h-2 w-2 bg-rose-500 rounded-full animate-ping" />}
             </div>
           </div>
         )}

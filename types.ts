@@ -1,6 +1,20 @@
 
 export type ModuleType = 'home' | 'events' | 'shoots' | 'website' | 'campaigns' | 'designers' | 'sponsors' | 'venues' | 'media' | 'saved' | 'chat' | 'settings';
 
+export interface Persona {
+  name: string;
+  illustration: string;
+  demographics: string;
+  psychographics: string;
+  lifestyle: string[];
+  channels: string[];
+}
+
+export interface MarketPosition {
+  x: number; // -100 (Street) to 100 (Luxury)
+  y: number; // -100 (Minimal) to 100 (Avant-Garde)
+}
+
 export interface Brand {
   id: string;
   name: string;
@@ -14,6 +28,33 @@ export interface Brand {
   };
   dna: string[];
   persona: string;
+  personas: Persona[];
+  marketPosition: MarketPosition;
+}
+
+export interface ProductMatch {
+  color: number;
+  lighting: number;
+  silhouette: number;
+  background: number;
+}
+
+export interface ProductPricing {
+  brand: number;
+  median: number;
+  positioning: string;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  price: string;
+  img: string;
+  category: string;
+  match: ProductMatch;
+  pricing: ProductPricing;
+  storyteller: string;
+  status: 'On-brand' | 'Needs review';
 }
 
 export interface Post {
