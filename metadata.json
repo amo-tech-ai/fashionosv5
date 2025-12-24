@@ -1,0 +1,8 @@
+{
+  "name": "FashionOS",
+  "description": "A premium fashion-tech operating system with a 3-panel intelligent dashboard for events, shoots, and campaigns.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
