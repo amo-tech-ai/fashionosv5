@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Command, Loader2, Target, Calendar, BarChart2, MessageCircle, BrainCircuit, Mic, MicOff, PhoneOff, Zap } from 'lucide-react';
+import { Send, Sparkles, Command, Loader2, Target, Calendar, BarChart2, MessageCircle, BrainCircuit, Mic, MicOff, PhoneOff, Zap, FileText, ChevronDown, ChevronUp, X } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import { useProjects } from '../contexts/ProjectContext';
 import { IntelligenceService } from '../services/intelligence';
@@ -23,6 +22,11 @@ const ChatPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isLive, setIsLive] = useState(false);
   
+  // Summary State
+  const [summary, setSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+
   // Live API Refs
   const audioContextRef = useRef<AudioContext | null>(null);
   const nextStartTimeRef = useRef(0);
@@ -120,10 +124,24 @@ const ChatPage: React.FC = () => {
     }
   };
 
+  const handleSummarize = async () => {
+    setIsSummarizing(true);
+    setShowSummary(true);
+    try {
+        const result = await intelService.summarizeConversation(messages);
+        setSummary(result || "Summarization unsuccessful.");
+    } catch (e) {
+        console.error(e);
+        setSummary("An error occurred while synthesizing the strategic summary.");
+    } finally {
+        setIsSummarizing(false);
+    }
+  };
+
   return (
-    <div className="flex h-full max-w-6xl mx-auto gap-8 p-8 md:p-12 overflow-hidden animate-in fade-in duration-700">
+    <div className="flex flex-col h-full max-w-6xl mx-auto gap-8 p-8 md:p-12 overflow-hidden animate-in fade-in duration-700">
       <div className="flex-1 flex flex-col min-w-0 bg-white border border-[#E5E1D8] rounded-[48px] shadow-sm overflow-hidden">
-        <header className="p-8 border-b border-[#E5E1D8] flex items-center justify-between bg-ivory/30">
+        <header className="p-8 border-b border-[#E5E1D8] flex items-center justify-between bg-ivory/30 relative z-20">
            <div>
               <h2 className="font-serif text-3xl">AI Concierge</h2>
               <div className="flex items-center gap-2 mt-1">
@@ -133,14 +151,51 @@ const ChatPage: React.FC = () => {
                  </span>
               </div>
            </div>
-           <button 
-             onClick={isLive ? stopLiveSession : startLiveSession}
-             className={`flex items-center gap-2 px-6 py-2 rounded-full text-[10px] uppercase font-bold tracking-widest transition-all ${isLive ? 'bg-rose-500 text-white animate-pulse' : 'bg-ivory border border-[#E5E1D8] text-warmgray hover:border-charcoal'}`}
-           >
-             {isLive ? <PhoneOff size={14} /> : <Mic size={14} />}
-             {isLive ? 'End Meeting' : 'Voice Link'}
-           </button>
+           <div className="flex items-center gap-3">
+              <button 
+                onClick={handleSummarize}
+                disabled={isSummarizing || messages.length < 2}
+                className="flex items-center gap-2 px-6 py-2 rounded-full text-[10px] uppercase font-bold tracking-widest transition-all bg-white border border-[#E5E1D8] text-warmgray hover:border-charcoal hover:text-charcoal disabled:opacity-30"
+              >
+                {isSummarizing ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                Summarize Strategy
+              </button>
+              <button 
+                onClick={isLive ? stopLiveSession : startLiveSession}
+                className={`flex items-center gap-2 px-6 py-2 rounded-full text-[10px] uppercase font-bold tracking-widest transition-all ${isLive ? 'bg-rose-500 text-white animate-pulse' : 'bg-charcoal text-white hover:bg-black shadow-lg shadow-black/10'}`}
+              >
+                {isLive ? <PhoneOff size={14} /> : <Mic size={14} />}
+                {isLive ? 'End Meeting' : 'Voice Link'}
+              </button>
+           </div>
         </header>
+
+        {/* Strategic Snapshot Overlay */}
+        {showSummary && (
+            <div className="bg-ivory border-b border-[#E5E1D8] animate-in slide-in-from-top-4 duration-500 relative z-10 overflow-hidden">
+                <div className="p-8 max-w-4xl mx-auto space-y-4">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-sage">
+                            <Sparkles size={16} />
+                            <span className="text-[10px] uppercase font-bold tracking-[0.3em]">Strategic Snapshot</span>
+                        </div>
+                        <button onClick={() => setShowSummary(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X size={16} className="text-warmgray" /></button>
+                    </div>
+                    {isSummarizing ? (
+                        <div className="flex items-center gap-3 py-4">
+                            <Loader2 size={24} className="animate-spin text-sage" />
+                            <p className="text-sm italic text-warmgray font-serif">Synthesizing executive insights from global Maison nodes...</p>
+                        </div>
+                    ) : (
+                        <div className="prose prose-sm prose-stone max-w-none">
+                            <div className="text-charcoal text-sm leading-relaxed whitespace-pre-wrap italic font-serif">
+                                {summary}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
            {messages.map((msg, i) => (
@@ -148,7 +203,7 @@ const ChatPage: React.FC = () => {
                 <div className={`h-12 w-12 rounded-2xl flex items-center justify-center flex-shrink-0 border ${msg.role === 'assistant' ? 'bg-charcoal text-white' : 'bg-[#E5E1D8] overflow-hidden'}`}>
                   {msg.role === 'assistant' ? <Sparkles size={20} /> : <img src="https://i.pravatar.cc/100?u=12" className="w-full h-full object-cover" />}
                 </div>
-                <div className={`rounded-3xl p-6 text-sm leading-relaxed max-w-[85%] ${msg.role === 'assistant' ? 'bg-ivory border border-[#E5E1D8] rounded-tl-none' : 'bg-charcoal text-white rounded-tr-none'}`}>
+                <div className={`rounded-3xl p-6 text-sm leading-relaxed max-w-[85%] ${msg.role === 'assistant' ? 'bg-ivory border border-[#E5E1D8] rounded-tl-none' : 'bg-charcoal text-white rounded-tr-none shadow-xl'}`}>
                    {msg.content}
                 </div>
              </div>
@@ -171,7 +226,7 @@ const ChatPage: React.FC = () => {
                 placeholder="Ask for strategic guidance..."
                 className="flex-1 bg-transparent border-none outline-none text-sm font-medium"
               />
-              <button type="submit" disabled={loading} className="h-12 w-12 bg-charcoal text-white rounded-full flex items-center justify-center shadow-lg"><Send size={18} /></button>
+              <button type="submit" disabled={loading} className="h-12 w-12 bg-charcoal text-white rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-95 disabled:opacity-50"><Send size={18} /></button>
            </form>
         </div>
       </div>

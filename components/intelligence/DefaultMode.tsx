@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Sparkles, Zap, Loader2, Camera, ShieldCheck, ClipboardList, TrendingUp, Share2, Globe, MessageSquare, Send, X, Activity, ExternalLink, Search, FileSearch } from 'lucide-react';
+import { Sparkles, Zap, Loader2, Camera, ShieldCheck, ClipboardList, TrendingUp, Share2, Globe, MessageSquare, Send, X, Activity, ExternalLink, Search, FileSearch, Link as LinkIcon } from 'lucide-react';
 import Section from './Section';
-import { IntelligenceService } from '../../services/intelligence';
+import { IntelligenceService, GroundedLink } from '../../services/intelligence';
 
 interface DefaultModeProps {
   brand: any;
@@ -12,12 +11,13 @@ interface DefaultModeProps {
 const DefaultMode: React.FC<DefaultModeProps> = ({ brand }) => {
   const location = useLocation();
   const intelService = IntelligenceService.getInstance();
+  
   const [isInsightLoading, setIsInsightLoading] = useState(false);
   const [isResearching, setIsResearching] = useState(false);
-  const [aiInsight, setAiInsight] = useState<string | null>(null);
-  const [researchResult, setResearchResult] = useState<string | null>(null);
+  const [aiInsight, setAiInsight] = useState<{ text: string, links: GroundedLink[] } | null>(null);
+  const [researchResult, setResearchResult] = useState<{ text: string, links: GroundedLink[] } | null>(null);
   const [proactivePing, setProactivePing] = useState<string | null>(null);
-  const [trendGrounding, setTrendGrounding] = useState<{ text: string, links: string[] } | null>(null);
+  const [trendGrounding, setTrendGrounding] = useState<{ text: string, links: GroundedLink[] } | null>(null);
   const [isTrendLoading, setIsTrendLoading] = useState(false);
 
   const [stream, setStream] = useState([
@@ -33,27 +33,6 @@ const DefaultMode: React.FC<DefaultModeProps> = ({ brand }) => {
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const users = ['Elena', 'Marcus', 'Sasha', 'Guardian'];
-      const actions = ['Refined Colorway', 'Updated Brief', 'DNA Scan Complete', 'New Asset Added'];
-      const newUser = users[Math.floor(Math.random() * users.length)];
-      const newAction = actions[Math.floor(Math.random() * actions.length)];
-      
-      const newItem = {
-        id: Date.now(),
-        user: newUser,
-        role: newUser === 'Guardian' ? 'AI Agent' : 'Team Node',
-        action: newAction,
-        time: 'Just now',
-        icon: newUser === 'Guardian' ? ShieldCheck : MessageSquare
-      };
-      
-      setStream(prev => [newItem, ...prev].slice(0, 5));
-    }, 45000);
-    return () => clearInterval(interval);
-  }, []);
-
   const handleTrendVerification = async () => {
     setIsTrendLoading(true);
     setTrendGrounding(null);
@@ -62,7 +41,7 @@ const DefaultMode: React.FC<DefaultModeProps> = ({ brand }) => {
       const result = await intelService.verifyTrend("Brutalist Silk Silhouettes SS25");
       setTrendGrounding(result);
     } catch (e) {
-      setTrendGrounding({ text: "Verified: Brutalist aesthetics are dominating early SS25 Milan previews.", links: [] });
+      console.error(e);
     } finally {
       setIsTrendLoading(false);
     }
@@ -75,7 +54,7 @@ const DefaultMode: React.FC<DefaultModeProps> = ({ brand }) => {
       const result = await intelService.performDeepResearch("Luxury Sustainability & AI integration SS25", brand.description);
       setResearchResult(result);
     } catch (e) {
-      setResearchResult("Strategic audit suggests a 12% lift by implementing radical transparency logs directly into editorial captions.");
+      console.error(e);
     } finally {
       setIsResearching(false);
     }
@@ -86,12 +65,44 @@ const DefaultMode: React.FC<DefaultModeProps> = ({ brand }) => {
     setAiInsight(null);
     try {
       const result = await intelService.getStrategicRecommendation(brand.name, brand.dna, location.pathname, actionLabel);
-      setAiInsight(result || "Insight core synchronized.");
+      setAiInsight(result);
     } catch (e) {
-      setAiInsight("Strategy audit complete. Maintain current aesthetic focus on architectural silhouettes.");
+      console.error(e);
     } finally {
       setIsInsightLoading(false);
     }
+  };
+
+  const renderResult = (data: { text: string, links: GroundedLink[] } | null) => {
+    if (!data) return null;
+    return (
+      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-500">
+        <div className="text-[10px] text-charcoal leading-relaxed whitespace-pre-line prose prose-sm">
+           {data.text}
+        </div>
+        {data.links.length > 0 && (
+          <div className="pt-3 border-t border-ivory space-y-2">
+             <p className="text-[8px] font-bold uppercase text-warmgray tracking-widest flex items-center gap-1.5">
+                <LinkIcon size={10} /> Sourced Intelligence
+             </p>
+             <div className="flex flex-wrap gap-2">
+                {data.links.map((link, i) => (
+                  <a 
+                    key={i} 
+                    href={link.uri} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="flex items-center gap-2 px-3 py-1.5 bg-white border border-[#E5E1D8] rounded-full text-[9px] font-medium text-sage hover:border-sage hover:bg-sage/5 transition-all shadow-sm max-w-[140px]"
+                  >
+                     <span className="truncate">{link.title}</span>
+                     <ExternalLink size={8} className="flex-shrink-0" />
+                  </a>
+                ))}
+             </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -99,7 +110,7 @@ const DefaultMode: React.FC<DefaultModeProps> = ({ brand }) => {
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {proactivePing && (
           <div className="m-4 p-4 bg-charcoal text-white rounded-2xl animate-in slide-in-from-right-4 duration-500 shadow-xl relative overflow-hidden group">
-            <button onClick={() => setProactivePing(null)} className="absolute top-2 right-2 text-white/40 hover:text-white"><X size={12} /></button>
+            <button onClick={() => setProactivePing(null)} className="absolute top-2 right-2 text-white/40 hover:text-white transition-colors"><X size={12} /></button>
             <div className="flex items-center gap-2 mb-2 text-sage">
                 <Activity size={12} className="animate-pulse" />
                 <span className="text-[9px] uppercase font-bold tracking-widest">Neural Trigger</span>
@@ -107,7 +118,7 @@ const DefaultMode: React.FC<DefaultModeProps> = ({ brand }) => {
             <p className="text-[10px] font-medium leading-relaxed mb-3">{proactivePing}</p>
             <button 
               onClick={handleTrendVerification}
-              className="w-full py-2 bg-sage text-white rounded-lg text-[8px] font-bold uppercase tracking-widest hover:scale-105 transition-all"
+              className="w-full py-2 bg-sage text-white rounded-lg text-[8px] font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-md"
             >
               Initialize Grounded Scan
             </button>
@@ -123,24 +134,14 @@ const DefaultMode: React.FC<DefaultModeProps> = ({ brand }) => {
 
         {trendGrounding && (
           <div className="m-4 p-4 bg-white border border-sage/40 rounded-2xl animate-in slide-in-from-top-2 duration-500 shadow-sm relative">
-             <div className="flex items-center justify-between mb-2">
+             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 text-sage">
                    <Globe size={12} />
                    <span className="text-[9px] uppercase font-bold tracking-widest">Grounded Result</span>
                 </div>
-                <button onClick={() => setTrendGrounding(null)}><X size={10} className="text-warmgray"/></button>
+                <button onClick={() => setTrendGrounding(null)} className="text-warmgray hover:text-charcoal transition-colors"><X size={10}/></button>
              </div>
-             <p className="text-[11px] leading-relaxed text-charcoal mb-3 italic">"{trendGrounding.text}"</p>
-             {trendGrounding.links.length > 0 && (
-               <div className="space-y-1">
-                  <p className="text-[8px] font-bold uppercase text-warmgray tracking-widest">Sources:</p>
-                  {trendGrounding.links.slice(0, 2).map((link, i) => (
-                    <a key={i} href={link} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[9px] text-sage hover:underline truncate">
-                       <ExternalLink size={8} /> {new URL(link).hostname}
-                    </a>
-                  ))}
-               </div>
-             )}
+             {renderResult(trendGrounding)}
           </div>
         )}
 
@@ -155,7 +156,7 @@ const DefaultMode: React.FC<DefaultModeProps> = ({ brand }) => {
                 key={i} 
                 onClick={() => btn.special ? executeDeepResearch() : executeContextualAction(btn.label)}
                 className={`w-full text-left p-3.5 text-xs rounded-xl font-bold uppercase tracking-widest transition-all flex items-center justify-between group disabled:opacity-50 ${
-                  btn.special ? 'bg-sage text-white hover:bg-charcoal' : 'bg-[#1A1A1A] text-white hover:bg-black'
+                  btn.special ? 'bg-sage text-white hover:bg-charcoal shadow-lg shadow-sage/10' : 'bg-[#1A1A1A] text-white hover:bg-black'
                 }`}
                 disabled={isInsightLoading || isResearching}
               >
@@ -170,18 +171,17 @@ const DefaultMode: React.FC<DefaultModeProps> = ({ brand }) => {
           
           {(aiInsight || researchResult) && (
             <div className="mt-4 p-4 bg-sage/10 border border-sage/20 rounded-2xl animate-in slide-in-from-top-2">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 text-sage">
                   <Sparkles size={12} />
                   <span className="text-[9px] uppercase font-bold tracking-widest">Neural Analysis Result</span>
                 </div>
-                <button onClick={() => { setAiInsight(null); setResearchResult(null); }}><X size={10}/></button>
+                <button onClick={() => { setAiInsight(null); setResearchResult(null); }} className="text-warmgray hover:text-charcoal"><X size={10}/></button>
               </div>
-              <div className="text-[10px] text-charcoal leading-relaxed whitespace-pre-line prose prose-sm prose-invert">
-                {researchResult || aiInsight}
-              </div>
+              {renderResult(researchResult || aiInsight)}
             </div>
           )}
+          
           {isResearching && (
             <div className="mt-4 p-4 bg-charcoal rounded-2xl animate-pulse space-y-3">
                <div className="flex items-center gap-2 text-sage">

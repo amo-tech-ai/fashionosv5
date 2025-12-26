@@ -1,12 +1,13 @@
-
 import React, { useEffect, useState } from 'react';
-import { BarChart3, TrendingUp, Compass, Palette, PieChart, ArrowUpRight, Sparkles, AlertCircle, RefreshCw, Globe, Loader2, Search, Target, Zap } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Compass, ArrowUpRight, Sparkles, AlertCircle, RefreshCw, Loader2, Search, Target, Zap } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import { useProjects } from '../contexts/ProjectContext';
 
 const BrandAnalysis: React.FC = () => {
+  const { brandId } = useParams();
   const { brands } = useProjects();
-  const brand = brands[0];
+  const brand = brands.find(b => b.id === brandId) || brands[0];
   const [animate, setAnimate] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
@@ -62,8 +63,10 @@ const BrandAnalysis: React.FC = () => {
     }
   };
 
+  if (!brand) return <div className="p-20 text-center animate-pulse">Synchronizing Brand Analysis...</div>;
+
   return (
-    <div className="p-8 md:p-12 max-w-7xl mx-auto space-y-16">
+    <div className="p-8 md:p-12 max-w-7xl mx-auto space-y-16 animate-in fade-in duration-700">
       {/* Strategic Pivot Alert */}
       {showPivot && (
         <div className="bg-charcoal text-white rounded-[40px] p-8 border border-sage/30 animate-in slide-in-from-top duration-700 shadow-2xl relative overflow-hidden">
@@ -122,7 +125,7 @@ const BrandAnalysis: React.FC = () => {
             </div>
          </div>
 
-         <div className="bg-white border border-[#E5E1D8] rounded-[40px] p-8 space-y-6">
+         <div className="bg-white border border-[#E5E1D8] rounded-[40px] p-8 space-y-6 shadow-sm">
             <h3 className="text-[10px] uppercase font-bold tracking-widest text-warmgray">Scenario Simulator</h3>
             <div className="space-y-3">
                {[
@@ -160,12 +163,12 @@ const BrandAnalysis: React.FC = () => {
          <div className="space-y-8">
             <div>
                <div className="flex items-center gap-3 mb-4">
-                  <div className="h-8 w-8 bg-sage rounded-xl flex items-center justify-center text-white">
+                  <div className="h-8 w-8 bg-sage rounded-xl flex items-center justify-center text-white shadow-lg">
                      <Compass size={18} />
                   </div>
                   <h3 className="font-serif text-3xl">Positioning</h3>
                </div>
-               <p className="text-warmgray leading-relaxed">{brand.description}</p>
+               <p className="text-warmgray leading-relaxed text-lg">{brand.description}</p>
             </div>
          </div>
       </section>

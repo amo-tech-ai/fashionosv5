@@ -36,7 +36,8 @@ const BrandIntake: React.FC = () => {
         'Extract 3 Core DNA Pillars'
       );
       
-      const dna = strategicRec.split(',').slice(0, 3).map(s => s.trim()) || ['Heritage', 'Elegance', 'Modernity'];
+      // Fix: Access .text property from IntelligenceResponse object before calling split
+      const dna = strategicRec.text.split(',').slice(0, 3).map(s => s.trim()) || ['Heritage', 'Elegance', 'Modernity'];
 
       addBrand({
         id: newId,
@@ -44,6 +45,8 @@ const BrandIntake: React.FC = () => {
         description: formData.description,
         type: formData.type,
         website: formData.website || `${newId}.com`,
+        // Fix: Added missing required dnaVersion property
+        dnaVersion: 'v1.0_Global',
         scores: { overall: 85, website: 70, social: 60 },
         dna: dna,
         persona: 'Global Epicurean',

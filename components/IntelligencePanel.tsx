@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Loader2, Camera, Box, Activity, ChevronDown } from 'lucide-react';
+import { Sparkles, Loader2, Camera, Box, Activity, ChevronDown, Zap } from 'lucide-react';
 import { useProjects } from '../contexts/ProjectContext';
 import { useIntelligence } from '../contexts/IntelligenceContext';
 
@@ -7,6 +7,7 @@ import { useIntelligence } from '../contexts/IntelligenceContext';
 import DefaultMode from './intelligence/DefaultMode';
 import BookingMode from './intelligence/BookingMode';
 import InventoryAuditMode from './intelligence/InventoryAuditMode';
+import ProductionOversightMode from './intelligence/ProductionOversightMode';
 
 const IntelligencePanel: React.FC = () => {
   const { brands } = useProjects();
@@ -19,6 +20,8 @@ const IntelligencePanel: React.FC = () => {
         return <InventoryAuditMode payload={payload} setMode={setMode} />;
       case 'booking':
         return <BookingMode payload={payload} onClose={closePanel} />;
+      case 'production_oversight':
+        return <ProductionOversightMode payload={payload} />;
       default:
         return <DefaultMode brand={brand} />;
     }
@@ -30,6 +33,8 @@ const IntelligencePanel: React.FC = () => {
         return { icon: <Camera size={18} className="text-sage" />, title: 'Production Orchestrator' };
       case 'inventory_audit':
         return { icon: <Box size={18} className="text-sage" />, title: 'Inventory Auditor' };
+      case 'production_oversight':
+        return { icon: <Zap size={18} className="text-sage fill-sage" />, title: 'Set Diagnostics' };
       default:
         return { icon: <Sparkles size={18} className="text-charcoal" />, title: 'Intelligence' };
     }

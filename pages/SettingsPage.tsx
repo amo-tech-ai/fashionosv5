@@ -1,9 +1,25 @@
-
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, Shield, User, Bell, Palette, Cpu, Globe, ArrowRight, Check } from 'lucide-react';
+import { Settings as SettingsIcon, Shield, User, Bell, Cpu, Globe, ArrowRight, Loader2, Zap, CheckCircle2, AlertCircle } from 'lucide-react';
+import { IntelligenceService } from '../services/intelligence';
 
 const SettingsPage: React.FC = () => {
   const [activeSection, setActiveSection] = useState('Workspace');
+  const [isDiagnosticRunning, setIsDiagnosticRunning] = useState(false);
+  const [diagnosticResult, setDiagnosticResult] = useState<any>(null);
+  const intelService = IntelligenceService.getInstance();
+
+  const runDiagnostics = async () => {
+    setIsDiagnosticRunning(true);
+    setDiagnosticResult(null);
+    try {
+      const result = await intelService.checkConnectivity();
+      setDiagnosticResult(result);
+    } catch (e) {
+      setDiagnosticResult({ status: 'Error', error: 'Internal Handshake Failure' });
+    } finally {
+      setIsDiagnosticRunning(false);
+    }
+  };
 
   const menuItems = [
     { name: 'Workspace', icon: SettingsIcon },
@@ -34,7 +50,7 @@ const SettingsPage: React.FC = () => {
 
       {/* Settings Content */}
       <div className="flex-1 space-y-12">
-         <section className="bg-white border border-[#E5E1D8] rounded-[48px] p-10 space-y-8">
+         <section className="bg-white border border-[#E5E1D8] rounded-[48px] p-10 space-y-8 shadow-sm">
             <div className="flex justify-between items-start border-b border-[#F9F7F2] pb-8">
                <div>
                   <h3 className="font-serif text-3xl mb-2">{activeSection} Preferences</h3>
@@ -85,14 +101,34 @@ const SettingsPage: React.FC = () => {
             </div>
          </section>
 
-         <section className="bg-charcoal text-white rounded-[48px] p-10 flex flex-col md:flex-row items-center gap-10">
-            <div className="flex-1 space-y-4">
+         <section className="bg-charcoal text-white rounded-[48px] p-10 flex flex-col md:flex-row items-center gap-10 shadow-2xl relative overflow-hidden group">
+            <div className="flex-1 space-y-4 relative z-10">
                <h4 className="font-serif text-3xl">Neural Link Status</h4>
                <p className="text-white/50 leading-relaxed text-sm">System Unit 01 is currently synchronized with the global production grid. Running on Gemini 3.0 Series.</p>
+               
+               {diagnosticResult && (
+                 <div className="mt-4 p-4 bg-white/5 border border-white/10 rounded-2xl animate-in slide-in-from-bottom-2">
+                    <div className="flex items-center gap-2 mb-2">
+                       {diagnosticResult.status === 'Operational' ? <CheckCircle2 size={14} className="text-sage" /> : <AlertCircle size={14} className="text-rose-500" />}
+                       <span className={`text-[10px] font-bold uppercase tracking-widest ${diagnosticResult.status === 'Operational' ? 'text-sage' : 'text-rose-500'}`}>
+                         Handshake: {diagnosticResult.status}
+                       </span>
+                    </div>
+                    <p className="text-[10px] text-white/40 font-mono italic">
+                      {diagnosticResult.error || `Response: ${diagnosticResult.response}`}
+                    </p>
+                 </div>
+               )}
             </div>
-            <button className="px-10 py-5 bg-white text-charcoal rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-3">
-               Run Diagnostics <ArrowRight size={16} />
+            <button 
+              onClick={runDiagnostics}
+              disabled={isDiagnosticRunning}
+              className="px-10 py-5 bg-white text-charcoal rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-3 relative z-10 disabled:opacity-50"
+            >
+               {isDiagnosticRunning ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} className="fill-charcoal" />}
+               {isDiagnosticRunning ? 'Validating...' : 'Run Diagnostics'} <ArrowRight size={16} />
             </button>
+            <div className="absolute -right-10 -bottom-10 h-64 w-64 bg-sage/10 rounded-full blur-[80px] group-hover:bg-sage/20 transition-all duration-1000" />
          </section>
       </div>
     </div>

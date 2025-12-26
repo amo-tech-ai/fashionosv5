@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
-  Home, Star, BarChart2, Calendar, Target, User, 
-  Layers, MapPin, Grid, Bookmark, MessageSquare, Settings, Menu, Sparkles, Activity, Bell, Camera
+  Home, BarChart2, Calendar, Target, User, 
+  MapPin, Grid, MessageSquare, Settings, Menu, Bell, Camera
 } from 'lucide-react';
 import { useProjects } from '../contexts/ProjectContext';
 
@@ -103,27 +103,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
                   {note}
                </div>
              ))}
-          </div>
-        )}
-
-        {!isCollapsed ? (
-          <div className="p-5 bg-white rounded-3xl border border-[#E5E1D8] shadow-sm relative overflow-hidden group">
-            <p className="text-[10px] uppercase tracking-widest text-warmgray font-bold mb-2">Neural Status</p>
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-charcoal flex items-center gap-2">
-                <span className="h-2 w-2 bg-sage rounded-full animate-pulse" />
-                Synchronized
-              </p>
-              <Activity size={12} className="text-sage" />
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-3 w-3 bg-sage rounded-full animate-pulse" />
-            <div className="relative">
-               <Bell size={20} className="text-warmgray" />
-               {notifications.length > 0 && <div className="absolute -top-1 -right-1 h-2 w-2 bg-rose-500 rounded-full animate-ping" />}
-            </div>
           </div>
         )}
       </div>

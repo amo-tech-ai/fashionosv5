@@ -1,15 +1,14 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Instagram, Send, Sparkles, Check, Clock, ChevronLeft, Image as ImageIcon, MessageCircle, MoreHorizontal, Loader2, ShieldCheck, AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
+import { Instagram, Check, Clock, ChevronLeft, MoreHorizontal, Loader2, ShieldCheck, AlertTriangle, CheckCircle2, Lock } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import { useProjects } from '../contexts/ProjectContext';
 
 const ContentEditor: React.FC = () => {
-  const { postId } = useParams();
+  const { brandId, postId } = useParams();
   const navigate = useNavigate();
   const { brands } = useProjects();
-  const brand = brands[0];
+  const brand = brands.find(b => b.id === brandId) || brands[0];
   
   const [status, setStatus] = useState<'Draft' | 'Needs Review' | 'Approved'>('Draft');
   const [isScheduling, setIsScheduling] = useState(false);
@@ -91,7 +90,7 @@ const ContentEditor: React.FC = () => {
   const isBlocked = complianceScore !== null && complianceScore < 70;
 
   return (
-    <div className="h-full flex flex-col md:flex-row bg-white relative">
+    <div className="h-full flex flex-col md:flex-row bg-white relative animate-in fade-in duration-700">
       {isScheduling && (
         <div className="absolute inset-0 z-50 glass flex items-center justify-center animate-in fade-in duration-300">
           <div className="w-full max-w-md bg-charcoal text-white rounded-[40px] p-10 shadow-2xl space-y-8">
@@ -143,19 +142,19 @@ const ContentEditor: React.FC = () => {
                 <div className="p-4 flex items-center justify-between border-b border-[#E5E1D8]">
                    <div className="flex items-center gap-3">
                       <div className="h-8 w-8 rounded-full bg-sage shadow-sm" />
-                      <span className="text-sm font-bold">lartisan.paris</span>
+                      <span className="text-sm font-bold">{brand.website}</span>
                    </div>
                    <Instagram size={18} className="text-rose-500" />
                 </div>
                 <div className="aspect-square bg-ivory">
-                   <img src={imageUrl} className="w-full h-full object-cover" />
+                   <img src={imageUrl} className="w-full h-full object-cover" alt="Post Preview" />
                 </div>
                 <div className="p-4 space-y-2">
                    <div className="flex gap-4">
                       <span className="text-xs font-bold">1,248 likes</span>
                    </div>
                    <p className="text-xs leading-relaxed line-clamp-2">
-                      <span className="font-bold mr-2">lartisan.paris</span>
+                      <span className="font-bold mr-2">{brand.id}</span>
                       {caption}
                    </p>
                 </div>
@@ -174,7 +173,7 @@ const ContentEditor: React.FC = () => {
 
              <div className="space-y-4">
                 <label className="text-[10px] uppercase font-bold tracking-[0.2em] text-warmgray">Compliance Strategy</label>
-                <div className="p-6 bg-ivory rounded-3xl border border-[#E5E1D8] space-y-4">
+                <div className="p-6 bg-ivory rounded-3xl border border-[#E5E1D8] space-y-4 shadow-sm">
                    <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <ShieldCheck size={16} className={complianceScore && complianceScore > 80 ? 'text-sage' : 'text-warmgray'} />
@@ -198,66 +197,8 @@ const ContentEditor: React.FC = () => {
                    </button>
                 </div>
              </div>
-
-             <div className="p-6 bg-ivory border border-[#E5E1D8] rounded-[32px] flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                   <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                      <Clock size={20} className="text-warmgray" />
-                   </div>
-                   <div>
-                      <p className="text-[10px] uppercase font-bold text-warmgray">Schedule</p>
-                      <p className="text-sm font-semibold">Oct 14, 2024 • 17:14</p>
-                   </div>
-                </div>
-                <button className="text-[10px] uppercase font-bold text-charcoal underline hover:text-warmgray transition-colors">Change</button>
-             </div>
           </div>
         </div>
-      </div>
-
-      <div className="w-full md:w-80 border-l border-[#E5E1D8] flex flex-col p-8 space-y-8 bg-ivory/20">
-         <div className="flex items-center gap-3">
-            <Sparkles size={20} className="text-sage" />
-            <h3 className="font-serif text-2xl">AI Editor</h3>
-         </div>
-
-         <div className="space-y-6">
-            <div className="p-6 bg-white rounded-3xl border border-[#E5E1D8] shadow-sm group">
-               <p className="text-[10px] uppercase font-bold text-sage mb-2">Neural Optimization</p>
-               <p className="text-xs leading-relaxed text-warmgray mb-4 italic group-hover:text-charcoal transition-colors">"High compliance detected. Carousel format recommended to maximize retention for 'Silent Curator' persona."</p>
-               <button className="w-full py-3 bg-charcoal text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">
-                  Generate Variant Mix
-               </button>
-            </div>
-
-            {isBlocked && (
-              <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-start gap-3 animate-in shake duration-500">
-                <AlertTriangle size={16} className="text-rose-500 flex-shrink-0 mt-0.5" />
-                <div>
-                   <p className="text-[10px] font-bold uppercase text-rose-700">Scheduling Blocked</p>
-                   <p className="text-[10px] text-rose-600 leading-relaxed mt-1">DNA Compliance score is too low. Aesthetic realignment required.</p>
-                </div>
-              </div>
-            )}
-
-            <div className="pt-8 space-y-4">
-               <button 
-                onClick={handleSchedule}
-                disabled={status === 'Approved' || isBlocked}
-                className={`w-full py-4 rounded-2xl text-[11px] font-bold uppercase tracking-widest transition-all shadow-lg flex items-center justify-center gap-2 ${
-                  status === 'Approved' ? 'bg-[#E5E1D8] text-warmgray cursor-default' : 
-                  isBlocked ? 'bg-warmgray text-white opacity-50 cursor-not-allowed' :
-                  'bg-sage text-white hover:scale-105 active:scale-95'
-                }`}
-               >
-                  {status === 'Approved' ? <CheckCircle2 size={18} /> : isBlocked ? <Lock size={18} /> : <Check size={18} />}
-                  {status === 'Approved' ? 'Scheduled' : isBlocked ? 'DNA Friction Detected' : 'Approve & Schedule'}
-               </button>
-               <button className="w-full py-4 border border-[#E5E1D8] bg-white rounded-2xl text-[11px] font-bold uppercase tracking-widest hover:bg-ivory transition-all">
-                  Request Neural Edit
-               </button>
-            </div>
-         </div>
       </div>
     </div>
   );

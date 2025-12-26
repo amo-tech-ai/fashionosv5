@@ -21,6 +21,7 @@ export interface Brand {
   description: string;
   type: string;
   website: string;
+  dnaVersion: string;
   scores: {
     overall: number;
     website: number;
@@ -30,6 +31,46 @@ export interface Brand {
   persona: string;
   personas: Persona[];
   marketPosition: MarketPosition;
+  styleGuide?: {
+    colors: { name: string; hex: string; rule: string }[];
+    typography: { heading: string; body: string };
+  };
+}
+
+export interface ShotItem {
+  id: string;
+  description: string;
+  lighting: string;
+  pose: string;
+  channel: 'Instagram' | 'TikTok' | 'Pinterest' | 'Amazon' | 'Shopify' | 'Vogue' | 'Web';
+  status: 'Pending' | 'Captured' | 'Approved' | 'Flagged';
+  complianceScore?: number;
+  testImage?: string;
+  referenceImage?: string;
+  auditFeedback?: string;
+  notes?: string;
+}
+
+export interface Shoot {
+  id: string;
+  brandId: string;
+  title: string;
+  concept: string;
+  status: 'Strategy' | 'Planning' | 'Production' | 'Post-Production' | 'Completed';
+  dnaSnapshot: {
+    version: string;
+    pillars: string[];
+    styleGuide: any;
+  };
+  crew: {
+    photographer: string;
+    stylist: string;
+    model: string;
+  };
+  shotList: ShotItem[];
+  preVizVideo?: string;
+  scheduledDate: string;
+  location: string;
 }
 
 export interface ProductMatch {
@@ -69,15 +110,6 @@ export interface Post {
   scheduledTime?: string;
 }
 
-export interface ShootRecommendation {
-  id: string;
-  title: string;
-  reason: string;
-  channels: string[];
-  impact: string;
-  image: string;
-}
-
 export interface FashionItem {
   id: string;
   title: string;
@@ -85,13 +117,6 @@ export interface FashionItem {
   status: 'In Progress' | 'Planned' | 'Live' | 'Archived';
   progress: number;
   image: string;
-}
-
-export interface Task {
-  id: string;
-  title: string;
-  status: 'pending' | 'completed';
-  dueDate: string;
 }
 
 export interface Message {

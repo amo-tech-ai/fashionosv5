@@ -1,17 +1,17 @@
 
 import React, { useState } from 'react';
-import { Sparkles, ArrowRight, Zap, Target, Camera, Check, ClipboardList, Loader2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Zap, Target, Camera, Check, ClipboardList, Loader2, Wand2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useIntelligence } from '../contexts/IntelligenceContext';
 import { useProjects } from '../contexts/ProjectContext';
 import ProductionBriefModal from '../components/shoot-recommendation/ProductionBriefModal';
 
 const ShootRecommendation: React.FC = () => {
+  const navigate = useNavigate();
   const { openPanel } = useIntelligence();
   const { brands } = useProjects();
   const brand = brands[0];
   const [selectedRec, setSelectedRec] = useState<any | null>(null);
-  const [isSending, setIsSending] = useState(false);
 
   const recommendations = [
     {
@@ -40,21 +40,15 @@ const ShootRecommendation: React.FC = () => {
     }
   ];
 
-  const handleBook = (rec: any) => {
-    openPanel('booking', {
-      title: rec.title,
-      image: rec.image,
-      impact: rec.impact,
-      suggestedStudio: rec.studio
+  const handleBriefingTransition = (rec: any) => {
+    // Navigate to wizard with state to pre-fill the concept
+    navigate(`/brand/${brand.id}/shoots/wizard`, { 
+      state: { 
+        concept: rec.desc, 
+        title: rec.title,
+        location: rec.studio
+      } 
     });
-  };
-
-  const handleSendBrief = async () => {
-    setIsSending(true);
-    // Simulate neural dispatch
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSending(false);
-    setSelectedRec(null);
   };
 
   return (
@@ -69,10 +63,10 @@ const ShootRecommendation: React.FC = () => {
             <p className="text-warmgray text-lg max-w-xl">Based on your brand scores and SS25 trajectory, we recommend these high-impact productions.</p>
          </div>
          <button 
-           onClick={() => setSelectedRec(recommendations[0])}
+           onClick={() => handleBriefingTransition(recommendations[0])}
            className="bg-charcoal text-white px-10 py-5 rounded-full text-sm font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-2xl flex items-center gap-3 group"
          >
-            Brief Top Production <ClipboardList size={20} className="group-hover:rotate-12 transition-transform" />
+            Customize Top Brief <Wand2 size={20} className="group-hover:rotate-12 transition-transform" />
          </button>
       </header>
 
@@ -104,13 +98,13 @@ const ShootRecommendation: React.FC = () => {
                  </div>
                  <div className="flex gap-2">
                     <button 
-                      onClick={() => setSelectedRec(rec)}
+                      onClick={() => handleBriefingTransition(rec)}
                       className="flex items-center gap-2 px-5 py-2.5 bg-charcoal text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all shadow-sm"
                     >
-                       <ClipboardList size={14} /> Brief Team
+                       <ClipboardList size={14} /> Plan Production
                     </button>
                     <button 
-                      onClick={() => handleBook(rec)}
+                      onClick={() => openPanel('booking', { title: rec.title, image: rec.image, impact: rec.impact, suggestedStudio: rec.studio })}
                       className="p-2.5 bg-ivory rounded-2xl hover:bg-sage hover:text-white transition-all text-warmgray"
                       title="Direct Booking"
                     >
@@ -127,7 +121,7 @@ const ShootRecommendation: React.FC = () => {
             <div className="h-12 w-12 bg-sage rounded-2xl flex items-center justify-center text-white shadow-lg">
                <Zap size={24} />
             </div>
-            <h4 className="font-serif text-3xl">AI Strategic Logic</h4>
+            <h4 className="font-serif text-3xl">Strategic Logic</h4>
             <p className="text-warmgray leading-relaxed text-sm">Our neural engine maps your "Heritage" DNA against the rising "Brutalist Silk" trend index. These scenes are projected to increase your engagement by 22% among high-net-worth conscious consumers.</p>
          </div>
          <div className="lg:col-span-2 glass rounded-[40px] p-10 flex flex-col md:flex-row gap-10">
@@ -157,29 +151,6 @@ const ShootRecommendation: React.FC = () => {
             </div>
          </div>
       </div>
-
-      {/* Production Brief Modal */}
-      {selectedRec && (
-        <ProductionBriefModal 
-          brand={brand}
-          recommendation={selectedRec}
-          onClose={() => setSelectedRec(null)}
-          onSend={handleSendBrief}
-        />
-      )}
-
-      {/* Sending Overlay */}
-      {isSending && (
-        <div className="fixed inset-0 z-[110] glass flex items-center justify-center animate-in fade-in duration-300">
-           <div className="bg-charcoal text-white rounded-[40px] p-12 shadow-2xl flex flex-col items-center gap-6">
-              <Loader2 size={48} className="animate-spin text-sage" />
-              <div className="text-center">
-                 <h3 className="font-serif text-3xl">Dispatching Brief...</h3>
-                 <p className="text-white/40 text-xs mt-2 uppercase tracking-widest">Neural Link Handshake in Progress</p>
-              </div>
-           </div>
-        </div>
-      )}
     </div>
   );
 };

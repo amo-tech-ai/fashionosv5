@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, ArrowUpRight, Clock, Sparkles, Check, Activity, ShieldCheck, Zap, Loader2 } from 'lucide-react';
+import { Plus, ArrowUpRight, Clock, Sparkles, Check, Activity, ShieldCheck, Zap, Loader2, ExternalLink } from 'lucide-react';
 import { useProjects } from '../contexts/ProjectContext';
-import { IntelligenceService } from '../services/intelligence';
+import { IntelligenceService, IntelligenceResponse } from '../services/intelligence';
 
 const StrategicRadar: React.FC<{ score: number }> = ({ score }) => {
   const [animate, setAnimate] = useState(false);
@@ -46,38 +46,34 @@ const Dashboard: React.FC = () => {
     { id: 3, t: 'Review campaign edit v2', d: 'Today', s: 'pending', completed: false }
   ]);
 
-  const [aiFeed, setAiFeed] = useState<string[]>([
-    "Guardian: System integrity is optimal.",
-    "Forecast: SS25 planning nodes active."
-  ]);
+  const [aiFeed, setAiFeed] = useState<IntelligenceResponse[]>([]);
   const [isGroundedLoading, setIsGroundedLoading] = useState(true);
 
   useEffect(() => {
+    if (!brand) return;
     const fetchSignals = async () => {
       try {
         const result = await intelService.verifyTrend(`${brand.name} ${brand.dna[0]} SS25 trends`);
-        setAiFeed(prev => [
-          `Forecaster: Grounded Scan for ${brand.name} complete.`,
-          result.text,
-          ...prev
-        ].slice(0, 5));
+        setAiFeed([result]);
       } catch (e) {
-        setAiFeed(prev => ["Signal sync complete.", ...prev]);
+        console.error(e);
       } finally {
         setIsGroundedLoading(false);
       }
     };
     fetchSignals();
-  }, []);
+  }, [brand]);
+
+  if (!brand) return <div className="p-20 text-center animate-pulse">Synchronizing Brand Data...</div>;
 
   const toggleTask = (id: number) => {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 md:p-12 space-y-12 md:space-y-16">
+    <div className="max-w-7xl mx-auto p-6 md:p-12 space-y-12 md:space-y-16 animate-in fade-in duration-700">
       <div className="flex flex-col lg:flex-row justify-between gap-8 md:gap-12">
-        <div className="flex-1 space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom duration-1000">
+        <div className="flex-1 space-y-6 md:space-y-8">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-2 md:gap-3">
               <span className="px-3 py-1 bg-sage/10 text-sage text-[8px] md:text-[9px] font-bold uppercase tracking-widest rounded-full flex items-center gap-2">
@@ -110,7 +106,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* System Integrity Widget */}
         <div className="bg-white border border-[#E5E1D8] rounded-[32px] md:rounded-[48px] p-6 md:p-8 flex flex-col items-center justify-center gap-6 shadow-sm min-w-full md:min-w-[320px] hover:shadow-xl transition-all group relative overflow-hidden">
            <div className="absolute top-0 left-0 w-full h-1.5 bg-ivory">
               <div className="h-full bg-sage transition-all duration-1000" style={{ width: `${brand.scores.overall}%` }} />
@@ -229,17 +224,38 @@ const Dashboard: React.FC = () => {
                     <Loader2 size={12} className="animate-spin" /> Grounding...
                   </div>
                 )}
-                {aiFeed.map((msg, i) => (
-                  <div key={i} className="flex gap-2 md:gap-3 text-[9px] md:text-[10px] font-medium text-white/60 animate-in fade-in slide-in-from-bottom-2">
-                    <Zap size={10} className="text-sage flex-shrink-0 mt-0.5" />
-                    <p className="leading-relaxed">{msg}</p>
+                {!isGroundedLoading && aiFeed.map((item, i) => (
+                  <div key={i} className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
+                    <div className="flex gap-2 md:gap-3 text-[9px] md:text-[10px] font-medium text-white/80">
+                      <Zap size={10} className="text-sage flex-shrink-0 mt-0.5" />
+                      <p className="leading-relaxed">{item.text}</p>
+                    </div>
+                    {item.links.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pl-5">
+                        {item.links.slice(0, 2).map((link, j) => (
+                          <a 
+                            key={j} 
+                            href={link.uri} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[8px] font-bold text-sage hover:bg-white/10 transition-all uppercase tracking-widest"
+                          >
+                             <span className="truncate max-w-[80px]">{link.title}</span>
+                             <ExternalLink size={8} />
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
+                {!isGroundedLoading && aiFeed.length === 0 && (
+                   <p className="text-[10px] text-white/40 italic">System integrity nominal. Awaiting grounded stream.</p>
+                )}
               </div>
             </div>
           </div>
           <button className="w-full py-4 md:py-5 border border-white/20 rounded-[16px] md:rounded-[20px] text-[9px] md:text-[10px] uppercase tracking-widest font-bold hover:bg-white/10 transition-colors relative z-10 mt-8">
-            View Detail
+            View Analytics
           </button>
           <div className="absolute -right-20 -bottom-20 h-64 w-64 bg-sage/10 rounded-full blur-[100px] group-hover:bg-sage/20 transition-all duration-1000" />
         </div>

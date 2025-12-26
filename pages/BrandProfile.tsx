@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Fingerprint, Edit2, Sparkles, Upload, Camera, Check, X, Save, ShieldAlert, FileText, Search } from 'lucide-react';
+import { Fingerprint, Edit2, Upload, Save, RotateCcw } from 'lucide-react';
 import { useProjects } from '../contexts/ProjectContext';
 import { useIntelligence } from '../contexts/IntelligenceContext';
 import { Product } from '../types';
@@ -16,23 +16,22 @@ import ScoresSection from '../components/brand-profile/ScoresSection';
 import TransparencySection from '../components/brand-profile/TransparencySection';
 
 const BrandProfile: React.FC = () => {
-  const { id = 'default' } = useParams();
+  const { brandId = 'default' } = useParams();
   const { brands, products, addProduct, updateProduct, updateBrand } = useProjects();
   const { openPanel } = useIntelligence();
   const intelService = IntelligenceService.getInstance();
-  const brand = brands.find(b => b.id === id) || brands[0];
-  const brandProducts = products[id] || [];
+  const brand = brands.find(b => b.id === brandId) || brands[0];
+  const brandProducts = products[brandId] || products['default'] || [];
 
   const tabs = ['Overview', 'Scores', 'Style Guide', 'Products', 'Transparency'];
   const [activeTab, setActiveTab] = useState('Overview');
   
   const [isEditingIdentity, setIsEditingIdentity] = useState(false);
-  const [tempDescription, setTempDescription] = useState(brand.description);
+  const [tempDescription, setTempDescription] = useState(brand?.description || '');
 
   const [isRegistering, setIsRegistering] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncLogs, setSyncLogs] = useState<string[]>([]);
-  const [isGeneratingStory, setIsGeneratingStory] = useState(false);
   const [isGeneratingMood, setIsGeneratingMood] = useState<string | null>(null);
   const [moodPreviews, setMoodPreviews] = useState<Record<string, string>>({});
   const [newProductData, setNewProductData] = useState({
@@ -66,19 +65,20 @@ const BrandProfile: React.FC = () => {
         `Product: ${product.name}, Category: ${product.category}`,
         "Synthesize Luxury Product Story"
       );
-      const story = responseText || "Synchronizing heritage narrative...";
-      updateProduct(id, product.id, { storyteller: story, status: 'Needs review' });
+      // Fix: Access .text property from IntelligenceResponse object
+      const story = responseText.text || "Synchronizing heritage narrative...";
+      updateProduct(brand.id, product.id, { storyteller: story, status: 'Needs review' });
     } catch (e) {
       console.error("AI Story Generation Failed:", e);
     }
   };
 
   const handleManualStoryEdit = (productId: string, text: string) => {
-    updateProduct(id, productId, { storyteller: text });
+    updateProduct(brand.id, productId, { storyteller: text });
   };
 
   const handleApproveStory = (productId: string) => {
-    updateProduct(id, productId, { status: 'On-brand' });
+    updateProduct(brand.id, productId, { status: 'On-brand' });
   };
 
   const registerProduct = async () => {
@@ -110,12 +110,11 @@ const BrandProfile: React.FC = () => {
       status: 'On-brand'
     };
 
-    addProduct(id, product);
+    addProduct(brand.id, product);
     setIsSyncing(false);
     setIsRegistering(false);
     setSyncLogs([]);
     
-    // Handshake with Intelligence Panel - Premium animation delay
     setTimeout(() => {
         openPanel('inventory_audit', {
           title: product.name,
@@ -133,6 +132,8 @@ const BrandProfile: React.FC = () => {
       storyteller: ''
     });
   };
+
+  if (!brand) return <div className="p-20 text-center animate-pulse">Synchronizing Brand Profile...</div>;
 
   return (
     <div className="p-8 md:p-12 max-w-7xl mx-auto space-y-12 animate-in fade-in duration-1000 pb-20">
@@ -154,7 +155,11 @@ const BrandProfile: React.FC = () => {
               <h2 className="font-serif text-6xl tracking-tighter">{brand.name}</h2>
               {isEditingIdentity ? (
                 <div className="space-y-4">
-                  <textarea value={tempDescription} onChange={(e) => setTempDescription(e.target.value)} className="w-full bg-white border border-[#E5E1D8] rounded-2xl p-4 text-sm leading-relaxed outline-none focus:border-charcoal min-h-[100px]" />
+                  <textarea 
+                    value={tempDescription} 
+                    onChange={(e) => setTempDescription(e.target.value)} 
+                    className="w-full bg-white border border-[#E5E1D8] rounded-2xl p-4 text-sm leading-relaxed outline-none focus:border-charcoal min-h-[100px]" 
+                  />
                   <div className="flex gap-3">
                     <button onClick={saveIdentity} className="flex items-center gap-2 px-6 py-2 bg-charcoal text-white rounded-full text-[10px] uppercase font-bold tracking-widest hover:bg-black transition-all"><Save size={14} /> Save</button>
                     <button onClick={() => setIsEditingIdentity(false)} className="px-6 py-2 border border-[#E5E1D8] rounded-full text-[10px] uppercase font-bold tracking-widest hover:bg-ivory transition-all">Cancel</button>

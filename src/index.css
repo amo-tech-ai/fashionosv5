@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-ivory text-charcoal font-sans;
+  }
+}
+
+@layer components {
+  .dna-chip {
+    @apply px-5 py-3 bg-ivory border border-[#E5E1D8] rounded-2xl flex items-center gap-3 font-bold text-[12px] uppercase tracking-widest transition-all hover:border-charcoal;
+  }
+}

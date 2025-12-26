@@ -8,10 +8,11 @@
 - **Root-Level Sovereignty**: No `src/` directory. All folders (`components/`, `pages/`, `contexts/`) reside in the project root.
 - **AI-Human Canvas Split**: Intelligence logic resides in `IntelligencePanel.tsx` (Right). Human working canvas resides in `pages/` (Center). Navigation resides in `Sidebar.tsx` (Left).
 
-### NEVER DO:
-- Never move files into a `src/` directory.
-- Never use absolute imports (e.g., `@/components`). Always use relative paths.
-- Never add logic to `App.tsx` beyond routing and context providers.
+## G) LAYOUT STABILITY & CONTAINER SOVEREIGNTY
+1. **The Root Law**: The outermost `div` in `Layout.tsx` must be `h-screen w-full flex overflow-hidden`. No exceptions.
+2. **The Canvas Law**: The central `<main>` element must have `flex-1 min-w-0 overflow-y-auto`. The `min-w-0` prevents "flex-inflation" where long titles push the Intelligence panel out of the viewport.
+3. **The Drawer Law**: On viewports < 1024px, the Intelligence Panel must be `fixed` or `absolute` with a high Z-index (z-50). It must NEVER push the main content on mobile.
+4. **Scrolling**: Only the Center Canvas and the internal content of the Intelligence Panel are permitted to have vertical scrollbars. The Sidebar must remain static.
 
 ## B) ROUTE TABLE
 | Path | Component | Layout Mode | File Location |
@@ -26,54 +27,3 @@
 | `/media` | `MediaPage` | 3-Panel | `pages/MediaPage.tsx` |
 | `/chat` | `ChatPage` | 3-Panel | `pages/ChatPage.tsx` |
 | `/settings` | `SettingsPage` | 3-Panel | `pages/SettingsPage.tsx` |
-
-## C) VERIFIED SITEMAP (Mermaid)
-```mermaid
-graph TD
-    %% Entry Point
-    Root[App.tsx / HashRouter] --> Layout{Layout Component}
-
-    %% Layout Logic
-    Layout -- "Path: /brand/intake" --> FullWidth[Full Width Canvas]
-    Layout -- "All Other Paths" --> ThreePanel[3-Panel OS Chrome]
-
-    %% OS Chrome
-    ThreePanel --> Sidebar[Sidebar - Left]
-    ThreePanel --> WorkingCanvas[Working Canvas - Center]
-    ThreePanel --> IntelPanel[IntelligencePanel - Right]
-
-    %% Working Canvas Routes
-    WorkingCanvas --> Dash[Dashboard]
-    WorkingCanvas --> Analysis[Brand Analysis]
-    WorkingCanvas --> Profile[Brand Profile]
-    WorkingCanvas --> Calendar[Content Calendar]
-    WorkingCanvas --> Editor[Content Editor]
-    WorkingCanvas --> Shoots[Shoot Recommendation]
-    WorkingCanvas --> Media[Media Board]
-    WorkingCanvas --> Concierge[AI Concierge/Chat]
-    WorkingCanvas --> Settings[System Control]
-
-    %% Full Width Routes
-    FullWidth --> Intake[Brand Intake Wizard]
-```
-
-## D) VALIDATION CHECKLIST
-- [ ] **Router Check**: Is `HashRouter` being used in `App.tsx`?
-- [ ] **Path Check**: Does `Layout.tsx` correctly exclude `/brand/intake` from Sidebar/Header rendering?
-- [ ] **File Placement**: Are pages strictly in `pages/` and components strictly in `components/`?
-- [ ] **Parameter Sync**: Does the Sidebar navigation use `:id` or a valid `default` slug that matches `App.tsx` params?
-- [ ] **Context Hierarchy**: Are `ProjectProvider` and `IntelligenceProvider` wrapping the Router?
-
-## E) VIOLATIONS & FORENSIC FIXES
-1. **Orphaned Page Modules**: `EventsPage.tsx`, `ShootsPage.tsx`, and `CampaignsPage.tsx` exist in `/pages` but are not registered in `App.tsx`. 
-   - *Fix*: Do not add them to `App.tsx` as per user constraints; they are currently dead code and should be removed or archived if not used.
-2. **Sidebar-Router Mismatch**: `Sidebar.tsx` uses hardcoded `/brand/default/analysis` paths, while `App.tsx` uses dynamic `:id`. 
-   - *Fix*: Sidebar should eventually derive `:id` from the current project context, but current behavior is functional for a MVP.
-3. **Wizard Component Redundancy**: `components/Wizard.tsx` provides a full-page experience that should ideally be a unique page or a modal within a page, rather than a standalone component that competes with the `BrandIntake` logic.
-
-## F) FUTURE-SAFE EXTENSIONS
-To add a new route:
-1. Create the file in `pages/`.
-2. Add the route to `App.tsx`.
-3. Add the navigation link to `Sidebar.tsx`.
-4. Ensure the `Layout.tsx` logic does not need updating unless it is a full-width exception.

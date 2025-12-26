@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export type IntelligenceMode = 'default' | 'booking' | 'inventory_audit';
+export type IntelligenceMode = 'default' | 'booking' | 'inventory_audit' | 'production_oversight';
 
 interface ProductionPayload {
   title: string;
@@ -9,6 +8,7 @@ interface ProductionPayload {
   impact: string;
   suggestedStudio?: string;
   productData?: any;
+  shootData?: any;
 }
 
 interface IntelligenceContextType {

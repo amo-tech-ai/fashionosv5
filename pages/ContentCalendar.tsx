@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Filter, Globe, Instagram, MessageCircle, Send, Plus, ArrowRight, BarChart3, Sparkles, Loader2, Info, Target, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Instagram, MessageCircle, Globe, Send, Sparkles, Loader2, Info, Target, Zap, BarChart3, ArrowRight } from 'lucide-react';
 import { useProjects } from '../contexts/ProjectContext';
 import { GoogleGenAI } from "@google/genai";
 
@@ -8,13 +8,8 @@ const ContentCalendar: React.FC = () => {
   const { brands } = useProjects();
   const brand = brands[0];
   const [view, setView] = useState('Month');
-  const [animate, setAnimate] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
-
-  React.useEffect(() => {
-    setTimeout(() => setAnimate(true), 100);
-  }, []);
 
   const days = Array.from({ length: 30 }, (_, i) => i + 1);
   const platforms = [
@@ -25,10 +20,10 @@ const ContentCalendar: React.FC = () => {
   ];
 
   const initialScheduledPosts = [
-    { day: 12, platform: 'Instagram', format: 'Reel', status: 'Approved', img: 'https://images.unsplash.com/photo-1551232864-3f0890e580d9?auto=format&fit=crop&w=200&q=80' },
-    { day: 14, platform: 'TikTok', format: 'Video', status: 'Draft', img: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=200&q=80' },
-    { day: 15, platform: 'Instagram', format: 'Carousel', status: 'Scheduled', img: 'https://images.unsplash.com/photo-1539109132314-34a9c6ee892b?auto=format&fit=crop&w=200&q=80' },
-    { day: 18, platform: 'Pinterest', format: 'Story', status: 'Approved', img: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80' }
+    { id: 'post-101', day: 12, platform: 'Instagram', format: 'Reel', status: 'Approved', img: 'https://images.unsplash.com/photo-1551232864-3f0890e580d9?auto=format&fit=crop&w=200&q=80' },
+    { id: 'post-102', day: 14, platform: 'TikTok', format: 'Video', status: 'Draft', img: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=200&q=80' },
+    { id: 'post-103', day: 15, platform: 'Instagram', format: 'Carousel', status: 'Scheduled', img: 'https://images.unsplash.com/photo-1539109132314-34a9c6ee892b?auto=format&fit=crop&w=200&q=80' },
+    { id: 'post-104', day: 18, platform: 'Pinterest', format: 'Story', status: 'Approved', img: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80' }
   ];
 
   const [posts, setPosts] = useState(initialScheduledPosts);
@@ -37,20 +32,16 @@ const ContentCalendar: React.FC = () => {
     setIsGenerating(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const prompt = `Generate a 7-day omnichannel content strategy for the luxury fashion brand "${brand.name}". 
-      DNA: ${brand.dna.join(', ')}. 
-      Season: SS25. 
-      Return ONLY a JSON array of 7 objects with keys: day (number, starting from 20), platform (string: Instagram, TikTok, or Pinterest), format (string), and concept (string).`;
-
+      const prompt = `Generate a 7-day omnichannel strategy for "${brand.name}". SS25. JSON array of 7 objects: day (20-27), platform, format, concept.`;
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: prompt,
         config: { responseMimeType: "application/json" }
       });
-
       const data = JSON.parse(response.text || '[]');
-      const newPosts = data.map((d: any) => ({
+      const newPosts = data.map((d: any, i: number) => ({
         ...d,
+        id: `ai-post-${Date.now()}-${i}`,
         status: 'AI Suggested',
         img: 'https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&w=200&q=80'
       }));
@@ -64,9 +55,9 @@ const ContentCalendar: React.FC = () => {
   };
 
   return (
-    <div className="p-8 md:p-12 max-w-7xl mx-auto flex flex-col h-full">
+    <div className="p-8 md:p-12 max-w-7xl mx-auto flex flex-col h-full animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-8">
-         <div className="animate-in fade-in slide-in-from-bottom duration-700">
+         <div>
             <h2 className="font-serif text-5xl mb-2">Content Strategy</h2>
             <p className="text-warmgray">Optimizing luxury placement across all global channels.</p>
          </div>
@@ -110,10 +101,13 @@ const ContentCalendar: React.FC = () => {
                {days.map(d => {
                  const post = posts.find(p => p.day === d);
                  return (
-                   <div key={d} className={`bg-white min-h-[120px] p-2 relative group hover:bg-ivory transition-colors cursor-pointer ${d % 7 === 0 || d % 7 === 6 ? 'bg-[#FAFAF9]' : ''}`}>
+                   <div key={d} className={`bg-white min-h-[120px] p-2 relative group hover:bg-ivory transition-colors ${d % 7 === 0 || d % 7 === 6 ? 'bg-[#FAFAF9]' : ''}`}>
                       <span className="text-[10px] font-bold text-warmgray">{d}</span>
                       {post && (
-                        <div className="mt-2 space-y-1 animate-in zoom-in-95 duration-500">
+                        <Link 
+                          to={`/brand/${brand.id}/content/${post.id}`}
+                          className="mt-2 block space-y-1 animate-in zoom-in-95 duration-500 hover:scale-95 transition-transform"
+                        >
                            <div className="aspect-square rounded-xl overflow-hidden relative shadow-sm">
                               <img src={post.img} className="w-full h-full object-cover" />
                               <div className="absolute top-1 right-1 bg-white/90 p-1 rounded-md">
@@ -124,9 +118,9 @@ const ContentCalendar: React.FC = () => {
                            </div>
                            <div className="flex justify-between items-center px-1">
                               <span className="text-[8px] font-bold uppercase text-charcoal">{post.format}</span>
-                              <div className={`h-1.5 w-1.5 rounded-full ${post.status === 'Approved' ? 'bg-green-500' : post.status === 'AI Suggested' ? 'bg-sage animate-pulse' : 'bg-warmgray'}`} />
+                              <div className={`h-1.5 w-1.5 rounded-full ${post.status === 'Approved' ? 'bg-sage' : 'bg-warmgray/40'}`} />
                            </div>
-                        </div>
+                        </Link>
                       )}
                    </div>
                  );
@@ -135,18 +129,13 @@ const ContentCalendar: React.FC = () => {
          </div>
 
          <div className="space-y-8">
-            {/* Smart Optimizations - Enhanced */}
             <div className="glass rounded-[40px] p-8 border border-sage/20 bg-sage/5 space-y-6">
                <div className="flex items-center justify-between">
                   <h4 className="font-serif text-2xl flex items-center gap-2">
                      <Sparkles size={18} className="text-sage" />
                      Mix Strategy
                   </h4>
-                  <div className="p-1.5 bg-sage/10 text-sage rounded-lg">
-                    <Target size={14} />
-                  </div>
                </div>
-
                <div className="space-y-4">
                   <div className="p-4 bg-white border border-sage/10 rounded-2xl space-y-3">
                      <div className="flex items-center gap-2 text-[10px] font-bold uppercase text-sage">
@@ -154,35 +143,18 @@ const ContentCalendar: React.FC = () => {
                         Neural Recommendation
                      </div>
                      <p className="text-xs text-charcoal font-medium leading-relaxed italic">
-                       "SS25 engagement indices favor 9:16 portrait video for conversion. AI suggests a 70% tilt toward cinematic Reels."
+                       "AI suggests a 70% tilt toward cinematic Reels for SS25 engagement indices."
                      </p>
                   </div>
-
                   <div className="space-y-3">
-                     <div className="flex justify-between items-center">
-                        <span className="text-[10px] uppercase font-bold text-warmgray tracking-widest">Platform Balance</span>
-                        <span className="text-[10px] font-bold text-sage uppercase">Optimized</span>
-                     </div>
                      <div className="flex h-5 rounded-xl overflow-hidden bg-ivory border border-[#E5E1D8]">
-                        <div className="bg-rose-500 w-[40%] group relative cursor-pointer"><div className="absolute inset-0 group-hover:bg-white/10 transition-colors" /></div>
-                        <div className="bg-charcoal w-[30%] group relative cursor-pointer"><div className="absolute inset-0 group-hover:bg-white/10 transition-colors" /></div>
-                        <div className="bg-red-600 w-[20%] group relative cursor-pointer"><div className="absolute inset-0 group-hover:bg-white/10 transition-colors" /></div>
-                        <div className="bg-blue-500 w-[10%] group relative cursor-pointer"><div className="absolute inset-0 group-hover:bg-white/10 transition-colors" /></div>
-                     </div>
-                     <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                        {platforms.map(p => (
-                          <div key={p.name} className="flex items-center justify-between">
-                             <div className="flex items-center gap-2">
-                                <p.icon size={10} className={p.color} />
-                                <span className="text-[9px] font-bold text-warmgray uppercase">{p.name}</span>
-                             </div>
-                             <span className="text-[9px] font-bold text-charcoal">{p.share}%</span>
-                          </div>
-                        ))}
+                        <div className="bg-rose-500 w-[40%]" />
+                        <div className="bg-charcoal w-[30%]" />
+                        <div className="bg-red-600 w-[20%]" />
+                        <div className="bg-blue-500 w-[10%]" />
                      </div>
                   </div>
                </div>
-
                <div className="pt-4 border-t border-sage/10">
                   <div className="flex items-center gap-2 p-3 bg-white/50 border border-sage/5 rounded-xl text-sage">
                     <Info size={14} />
@@ -194,18 +166,22 @@ const ContentCalendar: React.FC = () => {
             {aiSuggestions.length > 0 && (
               <div className="glass rounded-[40px] p-8 border border-[#E5E1D8] animate-in slide-in-from-right-4">
                  <h4 className="font-serif text-xl mb-4 flex items-center gap-2">
-                    <BarChart3 size={18} className="text-charcoal" />
+                    <BarChart3 size={18} />
                     Neural Feed
                  </h4>
                  <div className="space-y-4">
                     {aiSuggestions.map((s, i) => (
-                      <div key={i} className="text-[10px] p-3 bg-white/50 border border-[#E5E1D8] rounded-xl group hover:border-sage transition-all">
+                      <Link 
+                        to={`/brand/${brand.id}/content/${s.id}`}
+                        key={i} 
+                        className="block text-[10px] p-3 bg-white/50 border border-[#E5E1D8] rounded-xl group hover:border-sage transition-all"
+                      >
                         <div className="flex justify-between items-center mb-1">
                            <span className="font-bold text-sage uppercase">Day {s.day} • {s.platform}</span>
-                           <ArrowRight size={10} className="text-warmgray group-hover:text-charcoal transition-colors" />
+                           <ArrowRight size={10} />
                         </div>
-                        <p className="text-charcoal font-medium leading-relaxed">{s.concept}</p>
-                      </div>
+                        <p className="text-charcoal font-medium leading-relaxed truncate">{s.concept}</p>
+                      </Link>
                     ))}
                  </div>
               </div>
