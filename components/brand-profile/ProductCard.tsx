@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Sparkles, Check, RotateCcw, AlertTriangle, CheckCircle2, Info, Camera, Loader2, Wand2, BarChart2, TrendingUp } from 'lucide-react';
 import { Product } from '../../types';
@@ -15,7 +14,6 @@ interface ProductCardProps {
 }
 
 const MiniSparkline: React.FC<{ value: number; color: string }> = ({ value, color }) => {
-  // Generate a slightly random path for a cinematic "live data" feel
   const h1 = 10 + (value * 0.4);
   const h2 = 20 + (value * 0.5);
   const h3 = 15 + (value * 0.45);
@@ -58,7 +56,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const percentage = Math.abs(Math.round((priceDiff / product.pricing.median) * 100));
 
   return (
-    <div className="bg-white border border-[#E5E1D8] rounded-[48px] overflow-hidden group shadow-sm hover:shadow-3xl transition-all duration-700 animate-in fade-in zoom-in-95">
+    <div className="bg-white border border-[#E5E1D8] rounded-[32px] overflow-hidden group shadow-sm hover:shadow-2xl transition-all duration-700 animate-in fade-in zoom-in-95">
       <div className="flex flex-col lg:flex-row h-full">
          <div className="w-full lg:w-2/5 aspect-[4/5] lg:aspect-auto overflow-hidden relative group/img">
             <img 
@@ -67,7 +65,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
               alt={product.name} 
             />
             <div className="absolute top-8 left-8 flex flex-col gap-3">
-               <span className="px-4 py-1.5 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl border border-white/20">
+               <span className="px-4 py-1.5 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-[0.3em] shadow-xl border border-white/20">
                  {product.id}
                </span>
             </div>
@@ -90,11 +88,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
             <header className="flex justify-between items-start">
                <div>
                   <h5 className="font-serif text-3xl tracking-tight leading-none mb-2">{product.name}</h5>
-                  <p className="text-[10px] uppercase font-bold text-warmgray tracking-widest">{product.category}</p>
+                  <p className="text-[10px] uppercase font-bold text-warmgray tracking-[0.3em]">{product.category}</p>
                </div>
                <div className="text-right">
                   <span className="text-2xl font-bold block">{product.price}</span>
-                  <span className="text-[9px] uppercase font-bold text-sage tracking-widest">In Stock</span>
+                  <span className="text-[9px] uppercase font-bold text-sage tracking-[0.3em]">In Stock</span>
                </div>
             </header>
 
@@ -104,11 +102,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   <div className="flex items-center justify-between">
                      <div className="flex items-center gap-2.5 text-sage">
                         <Sparkles size={16} />
-                        <span className="text-[10px] uppercase font-bold tracking-[0.2em]">Neural Storyteller</span>
+                        <span className="text-[10px] uppercase font-bold tracking-[0.3em]">Neural Storyteller</span>
                      </div>
                      <div className="flex gap-3 items-center">
-                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${
-                          product.status === 'On-brand' ? 'bg-sage text-white shadow-lg shadow-sage/20' : 'bg-blush text-charcoal animate-pulse'
+                        <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-[0.3em] transition-all ${
+                          product.status === 'On-brand' ? 'bg-sage text-white shadow-lg shadow-sage/20' : 'bg-blush text-charcoal animate-pulse-slow'
                         }`}>
                           {product.status === 'On-brand' ? <Check size={10} /> : <AlertTriangle size={10} />}
                           {product.status}
@@ -137,18 +135,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     className="w-full bg-transparent border-none focus:ring-0 p-0 text-sm leading-relaxed text-charcoal italic font-serif font-medium resize-none min-h-[80px]"
                     placeholder="Synthesizing description..."
                   />
-                  <div className="flex items-center gap-2 text-[9px] text-warmgray uppercase tracking-[0.2em] pt-2 border-t border-[#E5E1D8]">
+                  <div className="flex items-center gap-2 text-[9px] text-warmgray uppercase tracking-[0.3em] pt-2 border-t border-[#E5E1D8]">
                      {product.status === 'On-brand' ? <CheckCircle2 size={12} className="text-sage" /> : <Info size={12} />}
                      {product.status === 'On-brand' ? 'DNA Integrity Verified' : 'Awaiting Aesthetic Validation'}
                   </div>
                </div>
                
-               {/* Refined Visual Match Score Breakdown */}
                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-6">
                      <div className="flex items-center gap-3">
                         <BarChart2 size={16} className="text-charcoal" />
-                        <span className="text-[10px] uppercase font-bold text-charcoal tracking-widest">Aesthetic Metrics</span>
+                        <span className="text-[10px] uppercase font-bold text-charcoal tracking-[0.3em]">Aesthetic Metrics</span>
                      </div>
                      
                      <div className="space-y-6">
@@ -160,7 +157,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                           <div key={stat.label} className="flex items-center justify-between group/stat">
                              <div className="flex-1 space-y-2">
                                 <div className="flex items-center justify-between">
-                                   <span className="text-[9px] font-bold uppercase tracking-widest text-warmgray group-hover/stat:text-charcoal transition-colors">
+                                   <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-warmgray group-hover/stat:text-charcoal transition-colors">
                                      {stat.label}
                                    </span>
                                    <span className="text-[10px] font-bold text-charcoal">{stat.value}%</span>
@@ -180,14 +177,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
                      </div>
                   </div>
 
-                  {/* Pricing Intelligence Widget */}
                   <div className="p-8 bg-white border border-[#E5E1D8] rounded-[32px] space-y-6 shadow-sm">
                      <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                            <TrendingUp size={16} className="text-sage" />
-                           <span className="text-[10px] uppercase font-bold text-charcoal tracking-widest">Pricing Intelligence</span>
+                           <span className="text-[10px] uppercase font-bold text-charcoal tracking-[0.3em]">Pricing Intelligence</span>
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border ${isPremium ? 'bg-sage/10 border-sage/20 text-sage' : 'bg-charcoal/5 border-charcoal/10 text-charcoal'}`}>
+                        <div className={`px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.3em] border ${isPremium ? 'bg-sage/10 border-sage/20 text-sage' : 'bg-charcoal/5 border-charcoal/10 text-charcoal'}`}>
                            {product.pricing.positioning}
                         </div>
                      </div>
@@ -203,7 +199,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                               }}
                            />
                         </div>
-                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+                        <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.3em]">
                            <div className="space-y-1">
                               <p className="text-warmgray">Market Median</p>
                               <p className="text-charcoal">€{product.pricing.median}</p>
@@ -214,7 +210,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                            </div>
                         </div>
                         <p className="text-[10px] text-warmgray italic leading-relaxed pt-2 border-t border-[#E5E1D8]/50">
-                           "Strategic {percentage}% premium justified by high DNA alignment and SS25 scarcity forecast."
+                           "Strategic {percentage}% premium justified by high DNA alignment."
                         </p>
                      </div>
                   </div>
@@ -226,11 +222,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   <div className="h-10 w-10 rounded-full border border-[#E5E1D8] flex items-center justify-center text-charcoal font-serif text-lg">
                      {alignmentScore}
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-warmgray">Composite AI Fit</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-warmgray">Composite AI Fit</span>
                </div>
                <button 
                  onClick={onBriefShoot}
-                 className="px-10 py-4 bg-charcoal text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all flex items-center gap-3 shadow-xl group/btn"
+                 className="px-10 py-4 bg-charcoal text-white rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-black transition-all flex items-center gap-3 shadow-xl group/btn"
                >
                   <Camera size={16} className="group-hover/btn:rotate-12 transition-transform" /> Brief Creative Production
                </button>

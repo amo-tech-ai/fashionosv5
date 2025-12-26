@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Sparkles, Loader2, Camera, Box, Activity } from 'lucide-react';
+import { Sparkles, Loader2, Camera, Box, Activity, ChevronDown } from 'lucide-react';
 import { useProjects } from '../contexts/ProjectContext';
 import { useIntelligence } from '../contexts/IntelligenceContext';
 
@@ -13,8 +12,6 @@ const IntelligencePanel: React.FC = () => {
   const { brands } = useProjects();
   const brand = brands[0];
   const { isOpen, closePanel, mode, payload, setMode } = useIntelligence();
-
-  if (!isOpen) return null;
 
   const renderContent = () => {
     switch (mode) {
@@ -34,16 +31,21 @@ const IntelligencePanel: React.FC = () => {
       case 'inventory_audit':
         return { icon: <Box size={18} className="text-sage" />, title: 'Inventory Auditor' };
       default:
-        return { icon: <Sparkles size={18} className="text-[#1A1A1A]" />, title: 'Intelligence' };
+        return { icon: <Sparkles size={18} className="text-charcoal" />, title: 'Intelligence' };
     }
   };
 
   const header = getHeaderInfo();
 
   return (
-    <aside className="w-80 h-full bg-white border-l border-[#E5E1D8] flex flex-col z-30 overflow-hidden transition-all duration-500 ease-in-out shadow-2xl animate-in slide-in-from-right duration-500">
+    <aside className="w-full h-full bg-white lg:border-l border-[#E5E1D8] flex flex-col z-30 overflow-hidden shadow-2xl relative">
+      {/* Mobile Drag Indicator */}
+      <div className="flex justify-center p-2 lg:hidden">
+        <div className="w-12 h-1 bg-[#E5E1D8] rounded-full" />
+      </div>
+
       <div className="h-20 flex items-center px-6 justify-between bg-white border-b border-[#E5E1D8] flex-shrink-0 relative">
-        <div className="flex items-center gap-2 group cursor-pointer">
+        <div className="flex items-center gap-3 group cursor-pointer">
           <div className="transition-transform group-hover:rotate-12 duration-500">
             {header.icon}
           </div>
@@ -53,9 +55,10 @@ const IntelligencePanel: React.FC = () => {
         </div>
         <button 
           onClick={closePanel} 
-          className="text-[10px] text-[#8C8C8C] hover:text-[#1A1A1A] font-bold uppercase tracking-[0.2em] transition-colors"
+          className="flex items-center gap-1 text-[10px] text-warmgray hover:text-charcoal font-bold uppercase tracking-[0.2em] transition-colors"
         >
           {mode === 'default' ? 'Hide' : 'Close'}
+          <ChevronDown size={14} className="lg:hidden" />
         </button>
       </div>
 
@@ -63,16 +66,16 @@ const IntelligencePanel: React.FC = () => {
         {renderContent()}
       </div>
 
-      <div className="p-4 border-t border-[#E5E1D8] bg-[#F9F7F2] flex-shrink-0 flex items-center justify-between">
+      <div className="p-4 border-t border-[#E5E1D8] bg-ivory/50 flex-shrink-0 flex items-center justify-between">
         <div className="flex items-center gap-2">
-           <Activity size={10} className="text-sage animate-pulse" />
-           <p className="text-[9px] font-bold text-[#8C8C8C] uppercase tracking-widest">
+           <Activity size={10} className="text-sage animate-pulse-slow" />
+           <p className="text-[9px] font-bold text-warmgray uppercase tracking-[0.3em]">
              Neural Sync Active
            </p>
         </div>
         <div className="flex -space-x-1.5">
            {[1, 2, 3].map(i => (
-             <div key={i} className="h-4 w-4 rounded-full border border-white bg-ivory" />
+             <div key={i} className="h-4 w-4 rounded-full border border-white bg-ivory shadow-sm" />
            ))}
         </div>
       </div>
