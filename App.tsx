@@ -3,19 +3,24 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts
 import PublicLayout from './components/PublicLayout';
-import Layout from './components/Layout'; // Note: Layout acts as AppLayout
+import Layout from './components/Layout';
 
-// Public Pages
+// Public Marketing Pages
 import LandingPage from './pages/marketing/LandingPage';
 import PricingPage from './pages/marketing/PricingPage';
 import DemoPage from './pages/marketing/DemoPage';
 import SolutionsPage from './pages/marketing/SolutionsPage';
 import AboutPage from './pages/marketing/AboutPage';
 import BlogPage from './pages/marketing/BlogPage';
-import SponsorCategoryPage from './pages/sponsors/SponsorCategoryPage';
 import PlatformSitemap from './pages/marketing/PlatformSitemap';
+import SponsorCategoryPage from './pages/sponsors/SponsorCategoryPage';
 
-// App Pages
+// Marketplace & Studio Hire
+import ServiceMarketplace from './pages/services/ServiceMarketplace';
+import ServiceDetail from './pages/services/ServiceDetail';
+import StudioHireLanding from './pages/studio/StudioHireLanding';
+
+// App Pages (Authenticated)
 import Dashboard from './pages/Dashboard';
 import BrandIntake from './pages/BrandIntake';
 import BrandAnalysis from './pages/BrandAnalysis';
@@ -34,6 +39,15 @@ import ShootsPage from './pages/ShootsPage';
 import CampaignsPage from './pages/CampaignsPage';
 import NotFound from './pages/NotFound';
 
+// Category: Channel Planning
+import ChannelHub from './pages/channels/ChannelHub';
+
+// Category: Video Production
+import VideoHub from './pages/videos/VideoHub';
+
+// Category: Retouching Post-Production
+import RetouchingHub from './pages/retouching/RetouchingHub';
+
 // Contexts
 import { ProjectProvider } from './contexts/ProjectContext';
 import { IntelligenceProvider } from './contexts/IntelligenceContext';
@@ -44,7 +58,7 @@ const App: React.FC = () => {
       <IntelligenceProvider>
         <HashRouter>
           <Routes>
-            {/* Public/Marketing Domain */}
+            {/* Public Domain */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<LandingPage />} />
               <Route path="/features" element={<LandingPage />} />
@@ -56,15 +70,14 @@ const App: React.FC = () => {
               <Route path="/demo" element={<DemoPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/blog" element={<BlogPage />} />
-              <Route path="/blog/:slug" element={<BlogPage />} />
-              <Route path="/careers" element={<AboutPage />} />
-              <Route path="/integrations" element={<AboutPage />} />
-              <Route path="/security" element={<AboutPage />} />
-              <Route path="/explore" element={<PlatformSitemap />} />
               <Route path="/platform-overview" element={<PlatformSitemap />} />
+              <Route path="/services" element={<ServiceMarketplace />} />
+              <Route path="/services/:type" element={<ServiceMarketplace />} />
+              <Route path="/services/:type/:packageId" element={<ServiceDetail />} />
+              <Route path="/studio-hire" element={<StudioHireLanding />} />
             </Route>
 
-            {/* Authenticated/App Domain */}
+            {/* App Domain */}
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/brand/intake" element={<BrandIntake />} />
@@ -74,6 +87,9 @@ const App: React.FC = () => {
               <Route path="/brand/:brandId/content/:postId" element={<ContentEditor />} />
               <Route path="/brand/:brandId/shoots/recommendation" element={<ShootRecommendation />} />
               <Route path="/brand/:brandId/shoots/wizard" element={<ShootWizard />} />
+              <Route path="/brand/:brandId/channels" element={<ChannelHub />} />
+              <Route path="/videos" element={<VideoHub />} />
+              <Route path="/retouching" element={<RetouchingHub />} />
               <Route path="/shoots" element={<ShootsPage />} />
               <Route path="/shoots/brief/:shootId" element={<ProductionBrief />} />
               <Route path="/shoots/crew/:shootId" element={<CrewExecution />} />
