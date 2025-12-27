@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -14,6 +13,7 @@ import SolutionsPage from './pages/marketing/SolutionsPage';
 import AboutPage from './pages/marketing/AboutPage';
 import BlogPage from './pages/marketing/BlogPage';
 import SponsorCategoryPage from './pages/sponsors/SponsorCategoryPage';
+import PlatformSitemap from './pages/marketing/PlatformSitemap';
 
 // App Pages
 import Dashboard from './pages/Dashboard';
@@ -60,6 +60,8 @@ const App: React.FC = () => {
               <Route path="/careers" element={<AboutPage />} />
               <Route path="/integrations" element={<AboutPage />} />
               <Route path="/security" element={<AboutPage />} />
+              <Route path="/explore" element={<PlatformSitemap />} />
+              <Route path="/platform-overview" element={<PlatformSitemap />} />
             </Route>
 
             {/* Authenticated/App Domain */}

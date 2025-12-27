@@ -56,6 +56,7 @@ const Footer: React.FC = () => {
         <div className="space-y-8">
           <h5 className="text-[10px] uppercase font-bold tracking-[0.3em] text-sage">Platform</h5>
           <ul className="space-y-4 text-[13px] font-medium text-white/50">
+            <li><Link to="/platform-overview" className="hover:text-white transition-colors">Sitemap</Link></li>
             <li><Link to="/features" className="hover:text-white transition-colors">AI Agents</Link></li>
             <li><Link to="/solutions" className="hover:text-white transition-colors">Strategy Nodes</Link></li>
             <li><Link to="/pricing" className="hover:text-white transition-colors">Maison Tiers</Link></li>
