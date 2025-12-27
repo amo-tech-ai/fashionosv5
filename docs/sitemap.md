@@ -1,42 +1,47 @@
+# FashionOS: Sitemap & Routing Architecture v2.1.0
 
-# FashionOS: Sitemap & Routing Architecture v2.0.0
+## 1. Executive Summary
+- **Public Domain**: Marketing nodes handled via `PublicLayout`.
+- **App Domain**: Authenticated nodes gated by `ProtectedApp` and handled via `Layout` (Triptych).
+- **Safety Invariant**: Separate `NotFound` experiences for Marketing vs. Workspace.
+- **Param Strategy**: `:brandId` used exclusively for all Maison-scoped context.
 
-This document serves as the canonical map of the FashionOS ecosystem, updated to include Marketplace, Channels, Motion, and Post-Production modules.
+## 2. Canonical Route Table
 
-## 1. Canonical Route Table
+### 2.1 Public / Marketing Domain
+*Gated: Public | Layout: PublicLayout*
 
-### 1.1 Public / Marketing Domain
-Focus: Authority, Conversion, and Network Reach.
+| Route Path | Component | Purpose |
+| :--- | :--- | :--- |
+| `/` | `LandingPage` | Maison Hero entry. |
+| `/features` | `LandingPage` | System capability index. |
+| `/pricing` | `PricingPage` | Maison access tiers. |
+| `/sponsors` | `SponsorCategoryPage` | Partnership vertical hub. |
+| `/services` | `ServiceMarketplace` | Talent & Studio directory. |
+| `/studio-hire` | `StudioHireLanding` | Physical node network. |
+| `*` | `NotFound(public)` | Marketing fallback. |
 
-| Route Path | Layout | Component | Purpose |
-| :--- | :--- | :--- | :--- |
-| `/` | `Public` | `LandingPage` | Primary Maison landing page. |
-| `/services` | `Public` | `ServiceMarketplace`| The Network Hub (directory). |
-| `/services/:type` | `Public` | `ServiceMarketplace`| Specialized Node discovery. |
-| `/services/:type/:pkgId`| `Public` | `ServiceDetail` | High-fidelity service deep dive. |
-| `/studio-hire` | `Public` | `StudioHireLanding`| Venue grid public entry. |
-| `/platform-overview` | `Public` | `PlatformSitemap` | Visual system roadmap. |
-
-### 1.2 Authenticated / App Domain
-Focus: Operational Momentum and Asset Integrity.
+### 2.2 App / Workspace Domain
+*Gated: Auth (ProtectedApp) | Layout: App Layout (Triptych)*
 
 | Category | Route Path | Layout | Purpose |
 | :--- | :--- | :--- | :--- |
-| **Core** | `/dashboard` | `App` | System command center. |
-| **Identity** | `/brand/:brandId/profile` | `App` | Digital DNA Core. |
-| **Channels** | `/brand/:brandId/channels` | `App` | Omnichannel Hub. |
-| **Channels** | `/brand/:brandId/channels/:id`| `App` | Platform-specific optimization. |
-| **Motion** | `/videos` | `App` | Motion Production Hub. |
-| **Motion** | `/videos/wizard` | `Overlay` | Cinematic Planning. |
-| **Post** | `/retouching` | `App` | Asset Refinement Grid. |
-| **Post** | `/retouching/review/:id` | `App` | Guardian Post-Audit. |
-| **Venues** | `/studio-hire/availability` | `App` | Real-time space booking. |
+| **Onboarding** | `/brand/intake` | Full-Width | Neural Brand Setup. |
+| **Core** | `/dashboard` | App | System Command Center. |
+| **Identity** | `/brand/:brandId/analysis` | App | Strategy & Gap Analysis. |
+| **Identity** | `/brand/:brandId/profile` | App | Digital DNA Core. |
+| **Marketing** | `/brand/:brandId/calendar` | App | Omnichannel Grid. |
+| **Marketing** | `/brand/:brandId/content/:postId`| App | Post Integrity Audit. |
+| **Production** | `/brand/:brandId/shoots/recommendation`| App | AI Creative Direction. |
+| **Production** | `/brand/:brandId/shoots/wizard`| Overlay | Strategic Planning. |
+| **Execution** | `/shoots` | App | Active Shoots Grid. |
+| **Execution** | `/shoots/brief/:shootId`| App | Technical Shot Brief. |
+| **Execution** | `/shoots/crew/:shootId`| App | On-Set Hardware HUD. |
+| **Context** | `*` | App | Workspace Fallback. |
 
-## 2. Navigation Architecture
-
-- **Primary Footer**: Global anchor for both domains.
-- **Triptych Sidebar**: Reserved for App Domain; provides quick-jump between operations (Shoots, Videos, Channels).
-- **Intelligence Panel**: Reacts to the current Canvas. (e.g., In `VideoStudio`, it shows the "Aesthetic Drift" of the rough cut).
+## 3. Interaction Logic
+- **Auth Gate**: If `brands.length === 0`, all App Domain routes redirect to `/`.
+- **Panel Invariant**: Intelligence Panel is suppressed on all `PublicLayout` and `Full-Width` routes.
 
 ---
-*Audit Complete. System Status: Enterprise Scaled.*
+*Audit Complete. System Integrity: Operational.*

@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 
 // Layouts
 import PublicLayout from './components/PublicLayout';
@@ -20,37 +20,47 @@ import ServiceMarketplace from './pages/services/ServiceMarketplace';
 import ServiceDetail from './pages/services/ServiceDetail';
 import StudioHireLanding from './pages/studio/StudioHireLanding';
 
-// App Pages (Authenticated)
-import Dashboard from './pages/Dashboard';
-import BrandIntake from './pages/BrandIntake';
-import BrandAnalysis from './pages/BrandAnalysis';
-import BrandProfile from './pages/BrandProfile';
-import ContentCalendar from './pages/ContentCalendar';
-import ContentEditor from './pages/ContentEditor';
-import ShootRecommendation from './pages/ShootRecommendation';
-import ShootWizard from './pages/ShootWizard';
-import CrewExecution from './pages/CrewExecution';
-import ProductionBrief from './pages/ProductionBrief';
-import ChatPage from './pages/ChatPage';
-import MediaPage from './pages/MediaPage';
-import SettingsPage from './pages/SettingsPage';
-import EventsPage from './pages/EventsPage';
-import ShootsPage from './pages/ShootsPage';
-import CampaignsPage from './pages/CampaignsPage';
+// App Pages: Global
+import Dashboard from './pages/app/global/Dashboard';
+import ChatPage from './pages/app/global/ChatPage';
+import MediaPage from './pages/app/global/MediaPage';
+import SettingsPage from './pages/app/global/SettingsPage';
+import EventsPage from './pages/app/global/EventsPage';
+
+// App Pages: Brand Identity
+import BrandIntake from './pages/app/brand/BrandIntake';
+import BrandAnalysis from './pages/app/brand/BrandAnalysis';
+import BrandProfile from './pages/app/brand/BrandProfile';
+import ContentCalendar from './pages/app/brand/ContentCalendar';
+import ContentEditor from './pages/app/brand/ContentEditor';
+import ChannelHub from './pages/app/brand/ChannelHub';
+
+// App Pages: Production & Shoots
+import ShootsPage from './pages/app/production/ShootsPage';
+import ProductionBrief from './pages/app/production/ProductionBrief';
+import CrewExecution from './pages/app/production/CrewExecution';
+import ShootRecommendation from './pages/app/production/ShootRecommendation';
+import ShootWizard from './pages/app/production/ShootWizard';
+
 import NotFound from './pages/NotFound';
 
-// Category: Channel Planning
-import ChannelHub from './pages/channels/ChannelHub';
-
-// Category: Video Production
-import VideoHub from './pages/videos/VideoHub';
-
-// Category: Retouching Post-Production
-import RetouchingHub from './pages/retouching/RetouchingHub';
-
 // Contexts
-import { ProjectProvider } from './contexts/ProjectContext';
+import { ProjectProvider, useProjects } from './contexts/ProjectContext';
 import { IntelligenceProvider } from './contexts/IntelligenceContext';
+
+/**
+ * Gated component that redirects to Landing if no brand identity exists.
+ */
+const ProtectedApp: React.FC = () => {
+  const { brands } = useProjects();
+  const isAuthenticated = brands.length > 0;
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <Outlet />;
+};
 
 const App: React.FC = () => {
   return (
@@ -58,7 +68,7 @@ const App: React.FC = () => {
       <IntelligenceProvider>
         <HashRouter>
           <Routes>
-            {/* Public Domain */}
+            {/* PUBLIC DOMAIN — Marketing Nodes */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<LandingPage />} />
               <Route path="/features" element={<LandingPage />} />
@@ -75,30 +85,37 @@ const App: React.FC = () => {
               <Route path="/services/:type" element={<ServiceMarketplace />} />
               <Route path="/services/:type/:packageId" element={<ServiceDetail />} />
               <Route path="/studio-hire" element={<StudioHireLanding />} />
+              <Route path="*" element={<NotFound variant="public" />} />
             </Route>
 
-            {/* App Domain */}
-            <Route element={<Layout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/brand/intake" element={<BrandIntake />} />
-              <Route path="/brand/:brandId/analysis" element={<BrandAnalysis />} />
-              <Route path="/brand/:brandId/profile" element={<BrandProfile />} />
-              <Route path="/brand/:brandId/calendar" element={<ContentCalendar />} />
-              <Route path="/brand/:brandId/content/:postId" element={<ContentEditor />} />
-              <Route path="/brand/:brandId/shoots/recommendation" element={<ShootRecommendation />} />
-              <Route path="/brand/:brandId/shoots/wizard" element={<ShootWizard />} />
-              <Route path="/brand/:brandId/channels" element={<ChannelHub />} />
-              <Route path="/videos" element={<VideoHub />} />
-              <Route path="/retouching" element={<RetouchingHub />} />
-              <Route path="/shoots" element={<ShootsPage />} />
-              <Route path="/shoots/brief/:shootId" element={<ProductionBrief />} />
-              <Route path="/shoots/crew/:shootId" element={<CrewExecution />} />
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/campaigns" element={<CampaignsPage />} />
-              <Route path="/media" element={<MediaPage />} />
-              <Route path="/chat" element={<ChatPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="*" element={<NotFound />} />
+            {/* APP DOMAIN — Gated Workspace */}
+            <Route element={<ProtectedApp />}>
+              <Route element={<Layout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                
+                {/* Brand Scoped Routes */}
+                <Route path="/brand/intake" element={<BrandIntake />} />
+                <Route path="/brand/:brandId/analysis" element={<BrandAnalysis />} />
+                <Route path="/brand/:brandId/profile" element={<BrandProfile />} />
+                <Route path="/brand/:brandId/calendar" element={<ContentCalendar />} />
+                <Route path="/brand/:brandId/content/:postId" element={<ContentEditor />} />
+                <Route path="/brand/:brandId/shoots/recommendation" element={<ShootRecommendation />} />
+                <Route path="/brand/:brandId/shoots/wizard" element={<ShootWizard />} />
+                <Route path="/brand/:brandId/channels" element={<ChannelHub />} />
+                
+                {/* Production Scoped Routes */}
+                <Route path="/shoots" element={<ShootsPage />} />
+                <Route path="/shoots/brief/:shootId" element={<ProductionBrief />} />
+                <Route path="/shoots/crew/:shootId" element={<CrewExecution />} />
+                
+                <Route path="/events" element={<EventsPage />} />
+                <Route path="/media" element={<MediaPage />} />
+                <Route path="/chat" element={<ChatPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+                
+                {/* App Internal Catch-All */}
+                <Route path="*" element={<NotFound variant="app" />} />
+              </Route>
             </Route>
           </Routes>
         </HashRouter>

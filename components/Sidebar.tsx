@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
@@ -43,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, setIsCollapsed }) => {
   }, [location.pathname]);
 
   const navItems = [
-    { name: 'Dashboard', icon: Home, path: '/' },
+    { name: 'Dashboard', icon: Home, path: '/dashboard' },
     { name: 'Analysis', icon: BarChart2, path: `/brand/${activeBrandId}/analysis` },
     { name: 'Profile', icon: User, path: `/brand/${activeBrandId}/profile` },
     { name: 'Calendar', icon: Calendar, path: `/brand/${activeBrandId}/calendar` },

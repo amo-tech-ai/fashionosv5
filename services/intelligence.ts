@@ -23,8 +23,18 @@ export class IntelligenceService {
   }
 
   private getFreshClient() {
-    // API Key must be obtained exclusively from process.env.API_KEY
-    return new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  }
+
+  private safeParseJson(text: string | undefined): any {
+    if (!text) return null;
+    try {
+      const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(cleaned);
+    } catch (e) {
+      console.error("Neural Parse Failure:", e, text);
+      return null;
+    }
   }
 
   private extractGrounding(response: any): GroundedLink[] {
@@ -34,26 +44,22 @@ export class IntelligenceService {
     return chunks
       .map((chunk: any) => ({
         uri: chunk.web?.uri || chunk.maps?.uri,
-        title: chunk.web?.title || chunk.maps?.title || "Source"
+        title: chunk.web?.title || chunk.maps?.title || "Maison Source"
       }))
       .filter((link: GroundedLink) => link.uri);
   }
 
-  /**
-   * Run System-Wide Connectivity Diagnostics
-   */
   public async checkConnectivity() {
     const ai = this.getFreshClient();
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: 'Connectivity Check. Respond with OK.',
+        contents: 'Pulse Check. Respond with: Operational.',
         config: { thinkingConfig: { thinkingBudget: 0 } }
       });
-      // Property .text is used, not a method
       return { status: 'Operational', latency: 'Optimal', response: response.text };
     } catch (e: any) {
-      return { status: 'Degraded', error: e.message };
+      return { status: 'Degraded', error: e.message || 'Handshake failed.' };
     }
   }
 
@@ -65,9 +71,9 @@ export class IntelligenceService {
       config: {
         responseModalities: [Modality.AUDIO],
         speechConfig: {
-          voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Puck' } },
+          voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } },
         },
-        systemInstruction: 'You are the FashionOS Real-time Concierge. Provide sophisticated production advice.',
+        systemInstruction: 'You are the FashionOS Real-time Concierge. Provide sophisticated production advice with brevity.',
       }
     });
   }
@@ -76,7 +82,7 @@ export class IntelligenceService {
     const ai = this.getFreshClient();
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Perform high-fidelity research on luxury trend: "${topic}". Identify current velocity and Maison impact.`,
+      contents: `Research current luxury trend velocity for: "${topic}". Focus on SS25 impact.`,
       config: { 
         tools: [{ googleSearch: {} }] 
       }
@@ -88,36 +94,19 @@ export class IntelligenceService {
     };
   }
 
-  async performDeepResearch(topic: string, brandDescription: string): Promise<IntelligenceResponse> {
-    const ai = this.getFreshClient();
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
-      contents: `Perform deep strategic audit: "${topic}". Context: ${brandDescription}. Analyze long-term Maison equity.`,
-      config: { 
-        tools: [{ googleSearch: {} }],
-        thinkingConfig: { thinkingBudget: 4096 }
-      }
-    });
-    
-    return {
-      text: response.text || "Strategic synthesis complete.",
-      links: this.extractGrounding(response)
-    };
-  }
-
   async getStrategicRecommendation(brandName: string, dna: string[], context: string, action: string): Promise<IntelligenceResponse> {
     const ai = this.getFreshClient();
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Brand: ${brandName}. DNA: ${dna.join(', ')}. Action: ${action}. Context: ${context}.`,
+      contents: `Maison: ${brandName}. Pillars: ${dna.join(', ')}. Action: ${action}. Context: ${context}.`,
       config: { 
-        systemInstruction: "You are the FashionOS Intelligence Engine. Provide precise, luxury-aligned advice.",
+        systemInstruction: "You are the FashionOS Strategy Engine. Provide precise, luxury-aligned advice.",
         tools: [{ googleSearch: {} }]
       }
     });
     
     return {
-      text: response.text || "Recommendation generated.",
+      text: response.text || "Insight generated.",
       links: this.extractGrounding(response)
     };
   }
@@ -126,7 +115,7 @@ export class IntelligenceService {
     const ai = this.getFreshClient();
     let operation = await ai.models.generateVideos({
       model: 'veo-3.1-fast-generate-preview',
-      prompt: `High-end luxury fashion cinematic video: ${prompt}. 4k, architectural lighting, shallow depth of field.`,
+      prompt: `Cinematic high-end fashion film: ${prompt}. Architectural lighting, 4k, desaturated.`,
       config: {
         numberOfVideos: 1,
         resolution: '720p',
@@ -135,7 +124,7 @@ export class IntelligenceService {
     });
 
     while (!operation.done) {
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      await new Promise(resolve => setTimeout(resolve, 8000));
       operation = await ai.operations.getVideosOperation({ operation: operation });
     }
 
@@ -147,13 +136,13 @@ export class IntelligenceService {
 
   async architectShotList(concept: string, dna: string[], platforms: string[]) {
     const ai = this.getFreshClient();
-    const prompt = `Act as a Luxury Production Producer. Generate a comprehensive technical shot list for: "${concept}". DNA: ${dna.join(', ')}. Return ONLY JSON array of 12 objects {id, description, lighting, pose, channel}.`;
+    const prompt = `Generate a technical fashion shot list for: "${concept}". DNA: ${dna.join(', ')}. Platforms: ${platforms.join(', ')}. Return ONLY a JSON array of objects {id, description, lighting, pose, channel}.`;
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: prompt,
       config: { responseMimeType: "application/json" }
     });
-    return JSON.parse(response.text || '[]');
+    return this.safeParseJson(response.text) || [];
   }
 
   async scanMediaAsset(imageUrl: string, brandDna: string[]) {
@@ -163,7 +152,7 @@ export class IntelligenceService {
       contents: [
         {
           parts: [
-            { text: `Analyze DNA compliance: ${brandDna.join(', ')}. Return SCORE: [0-100] and AUDIT: [text]. Format: SCORE: [number] | AUDIT: [text]` },
+            { text: `Analyze aesthetic DNA compliance for pillars: ${brandDna.join(', ')}. Return SCORE: [0-100] and AUDIT: [text]. Format: SCORE: [number] | AUDIT: [text]` },
             { inlineData: { mimeType: 'image/jpeg', data: imageUrl.split(',')[1] || '' } }
           ]
         }
@@ -171,7 +160,7 @@ export class IntelligenceService {
     });
     const text = response.text || '';
     const score = parseInt(text.match(/SCORE:\s*(\d+)/i)?.[1] || '85');
-    const audit = text.match(/AUDIT:\s*(.*)/i)?.[1] || "Aesthetic synchronized.";
+    const audit = text.match(/AUDIT:\s*(.*)/i)?.[1] || "Aesthetic synchronization complete.";
     return { score, audit };
   }
 
@@ -179,7 +168,7 @@ export class IntelligenceService {
     const ai = this.getFreshClient();
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Simulate reach for "${theme}".`,
+      contents: `Simulate omnichannel reach for campaign concept: "${theme}".`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -194,19 +183,37 @@ export class IntelligenceService {
         }
       }
     });
-    return JSON.parse(response.text || '{}');
+    return this.safeParseJson(response.text) || { ig_reach: 0, tiktok_reach: 0, conversion_lift: '0%', primary_format: 'None' };
   }
 
-  async suggestNearbyStudios(location: string = "Paris, France") {
+  async suggestNearbyStudios(location: string): Promise<{ text: string, places: string[] }> {
     const ai = this.getFreshClient();
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `List top studios in ${location}.`,
+      model: 'gemini-2.5-flash-lite-latest',
+      contents: `List professional photography and production studios near ${location} for luxury brands.`,
       config: { tools: [{ googleMaps: {} }] }
     });
+    const links = this.extractGrounding(response);
     return {
-      text: response.text || "Studio context found.",
-      places: response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => chunk.maps?.uri).filter(Boolean) || []
+      text: response.text || "Nearby production studios identified.",
+      places: links.map(l => l.uri)
+    };
+  }
+
+  async performDeepResearch(topic: string, brandContext: string): Promise<IntelligenceResponse> {
+    const ai = this.getFreshClient();
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-pro-preview',
+      contents: `Perform deep strategic research on: "${topic}". Brand Context: ${brandContext}. Focus on SS25 trajectory and market whitespace.`,
+      config: { 
+        thinkingConfig: { thinkingBudget: 4096 },
+        tools: [{ googleSearch: {} }]
+      }
+    });
+    
+    return {
+      text: response.text || "Strategic research synchronized.",
+      links: this.extractGrounding(response)
     };
   }
 
@@ -214,7 +221,7 @@ export class IntelligenceService {
     const ai = this.getFreshClient();
     const response = await ai.models.generateContent({
       model: 'gemini-3-pro-image-preview',
-      contents: { parts: [{ text: `Luxury moodboard: ${prompt}` }] },
+      contents: { parts: [{ text: `High-fidelity luxury moodboard: ${prompt}` }] },
       config: { imageConfig: { aspectRatio: "1:1", imageSize: "1K" } }
     });
     for (const part of response.candidates?.[0]?.content?.parts || []) {
@@ -228,9 +235,9 @@ export class IntelligenceService {
     const context = messages.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n');
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Analyze the following strategy session for a luxury brand. Summarize into 3 specific executive insights and a concluding 'Strategic Directive'. Context: \n${context}`,
+      contents: `Summarize this strategy session into 3 insights and 1 'Strategic Directive'. Context: \n${context}`,
       config: { thinkingConfig: { thinkingBudget: 0 } }
     });
-    return response.text || "Summary unsuccessful.";
+    return response.text || "Summarization failed.";
   }
 }
